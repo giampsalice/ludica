@@ -39,10 +39,6 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    body {
-      min-height: 100vh;
-    }
-
     .dashboard {
       width: 100%;
       max-width: 1320px;
@@ -130,6 +126,12 @@
       border: 1px solid var(--ludica-border);
       border-radius: 20px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    #yearButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .play-button,
@@ -378,38 +380,23 @@
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=1863177981&single=true&output=csv";
 
     const CONFIG = {
-      /*
-        Istogramma.
-
-        Il codice supporta due strutture:
-        1. Formato largo:
-           categoria | 2019 | 2020 | 2021 | 2022 ...
-
-        2. Formato lungo:
-           anno | categoria | valore
-
-        In entrambi i casi, mostra un solo anno alla volta.
-      */
-
       barLabelColumn: null,
       barYearColumn: null,
       barValueColumn: null,
 
       /*
-        Mappa.
-
-        La colonna del nome luogo è forzata su "comunità",
-        come richiesto.
+        Qui NON usiamo più direttamente row["comunità"].
+        Il codice cerca la colonna corrispondente in modo flessibile.
       */
-
       placeNameColumn: "comunità",
+
       latitudeColumn: null,
       longitudeColumn: null,
       mapYearColumn: null,
       markerValueColumn: null,
 
       maxBars: 40,
-      debug: false,
+      debug: true,
       autoplayMs: 1800
     };
 
@@ -535,20 +522,50 @@
 
       for (const candidate of candidates) {
         const normalizedCandidate = normalizeText(candidate);
-        const exact = normalizedColumns.find(column => column.normalized === normalizedCandidate);
+
+        const exact = normalizedColumns.find(
+          column => column.normalized === normalizedCandidate
+        );
+
         if (exact) return exact.original;
       }
 
       for (const candidate of candidates) {
         const normalizedCandidate = normalizeText(candidate);
+
         const partial = normalizedColumns.find(column =>
           column.normalized.includes(normalizedCandidate) ||
           normalizedCandidate.includes(column.normalized)
         );
+
         if (partial) return partial.original;
       }
 
       return null;
+    }
+
+    /*
+      Questa è la correzione principale:
+      se CONFIG.placeNameColumn = "comunità", prima trova il vero nome
+      della colonna presente nel CSV, per esempio "Comunità".
+    */
+    function resolveConfiguredColumn(columns, configuredName) {
+      if (!configuredName) return null;
+
+      const configuredNormalized = normalizeText(configuredName);
+
+      const exact = columns.find(column =>
+        normalizeText(column) === configuredNormalized
+      );
+
+      if (exact) return exact;
+
+      const partial = columns.find(column =>
+        normalizeText(column).includes(configuredNormalized) ||
+        configuredNormalized.includes(normalizeText(column))
+      );
+
+      return partial || null;
     }
 
     function numericScore(rows, column) {
@@ -568,6 +585,7 @@
 
       for (const row of rows) {
         const value = String(row[column] ?? "").trim();
+
         if (value && !Number.isFinite(parseNumber(value))) {
           count++;
         }
@@ -586,6 +604,12 @@
     }
 
     function findYearColumnInRows(rows, columns) {
+      const configured =
+        resolveConfiguredColumn(columns, CONFIG.barYearColumn) ||
+        resolveConfiguredColumn(columns, CONFIG.mapYearColumn);
+
+      if (configured) return configured;
+
       const preferred = findColumnByCandidates(columns, [
         "anno",
         "year",
@@ -652,6 +676,13 @@
     function findBestLabelColumn(rows, columns, excludedColumns = []) {
       const excluded = new Set(excludedColumns.filter(Boolean));
 
+      const configured =
+        resolveConfiguredColumn(columns, CONFIG.barLabelColumn);
+
+      if (configured && !excluded.has(configured)) {
+        return configured;
+      }
+
       const preferred = findColumnByCandidates(columns, [
         "categoria",
         "indicatore",
@@ -690,12 +721,11 @@
 
     function detectBarModel(rows) {
       const columns = getColumns(rows);
-
       const wideYearColumns = findYearColumns(columns);
 
       if (wideYearColumns.length) {
         const labelColumn =
-          CONFIG.barLabelColumn ||
+          resolveConfiguredColumn(columns, CONFIG.barLabelColumn) ||
           findBestLabelColumn(rows, columns, wideYearColumns);
 
         return {
@@ -706,15 +736,15 @@
       }
 
       const yearColumn =
-        CONFIG.barYearColumn ||
+        resolveConfiguredColumn(columns, CONFIG.barYearColumn) ||
         findYearColumnInRows(rows, columns);
 
       const labelColumn =
-        CONFIG.barLabelColumn ||
+        resolveConfiguredColumn(columns, CONFIG.barLabelColumn) ||
         findBestLabelColumn(rows, columns, [yearColumn]);
 
       const valueColumn =
-        CONFIG.barValueColumn ||
+        resolveConfiguredColumn(columns, CONFIG.barValueColumn) ||
         findBestNumericColumn(rows, columns, [yearColumn, labelColumn]);
 
       return {
@@ -750,8 +780,9 @@
 
     function extractYearsFromMap(rows) {
       const columns = getColumns(rows);
+
       const yearColumn =
-        CONFIG.mapYearColumn ||
+        resolveConfiguredColumn(columns, CONFIG.mapYearColumn) ||
         findYearColumnInRows(rows, columns);
 
       if (!yearColumn) return [];
@@ -1002,7 +1033,7 @@
       }
 
       const latColumn =
-        CONFIG.latitudeColumn ||
+        resolveConfiguredColumn(columns, CONFIG.latitudeColumn) ||
         findColumnByCandidates(columns, [
           "latitudine",
           "latitude",
@@ -1011,7 +1042,7 @@
         ]);
 
       const lonColumn =
-        CONFIG.longitudeColumn ||
+        resolveConfiguredColumn(columns, CONFIG.longitudeColumn) ||
         findColumnByCandidates(columns, [
           "longitudine",
           "longitude",
@@ -1021,10 +1052,12 @@
         ]);
 
       const placeColumn =
-        CONFIG.placeNameColumn ||
+        resolveConfiguredColumn(columns, CONFIG.placeNameColumn) ||
         findColumnByCandidates(columns, [
           "comunità",
           "comunita",
+          "centro abitato",
+          "centro",
           "luogo",
           "comune",
           "citta",
@@ -1038,11 +1071,11 @@
         ]);
 
       const yearColumn =
-        CONFIG.mapYearColumn ||
+        resolveConfiguredColumn(columns, CONFIG.mapYearColumn) ||
         findYearColumnInRows(rows, columns);
 
       const valueColumn =
-        CONFIG.markerValueColumn ||
+        resolveConfiguredColumn(columns, CONFIG.markerValueColumn) ||
         findBestNumericColumn(rows, columns, [latColumn, lonColumn, yearColumn]);
 
       if (!latColumn || !lonColumn) {
@@ -1059,9 +1092,6 @@
           String(row[yearColumn] ?? "").trim() === year
         );
 
-        /*
-          Se il foglio mappa non è organizzato per anno, mostra tutti i luoghi.
-        */
         if (rowsForYear.length) {
           filteredRows = rowsForYear;
         }
@@ -1072,7 +1102,12 @@
           const lat = parseNumber(row[latColumn]);
           const lon = parseNumber(row[lonColumn]);
           const value = valueColumn ? parseNumber(row[valueColumn]) : NaN;
-          const place = placeColumn ? String(row[placeColumn] ?? "").trim() : "";
+
+          let place = "";
+
+          if (placeColumn) {
+            place = String(row[placeColumn] ?? "").trim();
+          }
 
           return {
             row,
@@ -1099,7 +1134,9 @@
       }
 
       mapNoteEl.textContent =
-        `Mappa costruita usando "${placeColumn || "luogo"}", "${latColumn}" e "${lonColumn}".`;
+        placeColumn
+          ? `Mappa costruita usando la colonna luogo "${placeColumn}".`
+          : `Mappa costruita, ma non ho trovato la colonna del nome luogo.`;
 
       if (mapInstance) {
         mapInstance.remove();
@@ -1134,7 +1171,8 @@
           fillOpacity: 0.72
         }).addTo(mapInstance);
 
-        const popupTitle = point.place || "Comunità";
+        const popupTitle = point.place || "Centro abitato non indicato";
+
         const popupValue =
           valueColumn && Number.isFinite(point.value)
             ? `<br><strong>${escapeHtml(valueColumn)}:</strong> ${new Intl.NumberFormat("it-IT").format(point.value)}`
@@ -1204,6 +1242,33 @@
       }
     }
 
+    function makeYearButtons() {
+      yearButtonsEl.innerHTML = "";
+
+      for (const year of years) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "year-button";
+        button.textContent = year;
+        button.dataset.year = year;
+
+        button.addEventListener("click", () => {
+          stopAutoplay();
+          setYear(year);
+        });
+
+        yearButtonsEl.appendChild(button);
+      }
+    }
+
+    function updateYearButtons() {
+      const buttons = yearButtonsEl.querySelectorAll(".year-button");
+
+      buttons.forEach(button => {
+        button.classList.toggle("is-active", button.dataset.year === currentYear);
+      });
+    }
+
     function writeDebug() {
       if (!CONFIG.debug) {
         debugEl.classList.remove("is-visible");
@@ -1212,11 +1277,18 @@
 
       debugEl.classList.add("is-visible");
 
+      const mapColumns = getColumns(allMapRows);
+      const resolvedPlaceColumn = resolveConfiguredColumn(mapColumns, CONFIG.placeNameColumn);
+
       debugEl.textContent =
         "Colonne rilevate nel foglio istogramma:\n" +
         getColumns(allBarRows).join(" | ") +
         "\n\nColonne rilevate nel foglio mappa:\n" +
-        getColumns(allMapRows).join(" | ");
+        mapColumns.join(" | ") +
+        "\n\nColonna luogo richiesta:\n" +
+        CONFIG.placeNameColumn +
+        "\n\nColonna luogo effettivamente usata:\n" +
+        (resolvedPlaceColumn || "NON TROVATA");
     }
 
     async function initDashboard() {
@@ -1249,7 +1321,6 @@
         }
 
         makeYearButtons();
-
         setYear(years[years.length - 1]);
       } catch (error) {
         console.error(error);
