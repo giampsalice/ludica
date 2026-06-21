@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Visualizzazione statistiche Ludica</title>
+
+  <title>LUDiCa in cifre</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -12,6 +13,19 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
+    :root {
+      --ludica-red: #8b1e3f;
+      --ludica-red-dark: #65142d;
+      --ludica-gold: #d79a2b;
+      --ludica-bg: #f7f4ef;
+      --ludica-card: #ffffff;
+      --ludica-text: #202124;
+      --ludica-muted: #6b7280;
+      --ludica-border: #e6ddd2;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
+      --radius: 22px;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -21,44 +35,144 @@
       margin: 0;
       padding: 0;
       background: transparent;
+      color: var(--ludica-text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #1f2933;
+    }
+
+    body {
+      min-height: 100vh;
     }
 
     .dashboard {
       width: 100%;
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 22px;
+      background:
+        radial-gradient(circle at top left, rgba(215, 154, 43, 0.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(139, 30, 63, 0.12), transparent 30%),
+        var(--ludica-bg);
+      border-radius: 28px;
     }
 
-    .dashboard-header {
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr auto;
+      gap: 20px;
+      align-items: end;
       margin-bottom: 18px;
+      padding: 24px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, var(--ludica-red), var(--ludica-red-dark));
+      color: #fff;
+      box-shadow: var(--shadow);
     }
 
-    .dashboard-title {
+    .hero-kicker {
       margin: 0 0 6px;
-      font-size: clamp(1.4rem, 2vw, 2rem);
-      line-height: 1.2;
-      font-weight: 750;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.76);
+      font-weight: 700;
     }
 
-    .dashboard-subtitle {
+    .hero-title {
       margin: 0;
-      color: #667085;
-      font-size: 0.98rem;
-      line-height: 1.45;
+      font-size: clamp(1.8rem, 4vw, 3.6rem);
+      line-height: 0.98;
+      font-weight: 850;
+    }
+
+    .hero-subtitle {
+      margin: 12px 0 0;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .year-display {
+      min-width: 170px;
+      text-align: center;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(8px);
+    }
+
+    .year-display-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255, 255, 255, 0.74);
+      font-weight: 700;
+    }
+
+    .year-display-value {
+      display: block;
+      margin-top: 4px;
+      font-size: clamp(2.4rem, 5vw, 4.6rem);
+      line-height: 1;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--ludica-border);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .play-button,
+    .year-button {
+      appearance: none;
+      border: 1px solid var(--ludica-border);
+      background: #fff;
+      color: var(--ludica-text);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease, border 0.16s ease;
+    }
+
+    .play-button {
+      background: var(--ludica-red);
+      border-color: var(--ludica-red);
+      color: #fff;
+      padding-inline: 18px;
+    }
+
+    .play-button:hover,
+    .year-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .year-button.is-active {
+      background: var(--ludica-gold);
+      border-color: var(--ludica-gold);
+      color: #23180a;
     }
 
     .status {
       display: none;
-      margin: 14px 0 18px;
+      margin: 0 0 18px;
       padding: 12px 14px;
-      border: 1px solid #e5e7eb;
-      border-left: 5px solid #8b1e3f;
       background: #fff;
-      border-radius: 12px;
-      color: #667085;
+      border: 1px solid var(--ludica-border);
+      border-left: 5px solid var(--ludica-red);
+      border-radius: 14px;
+      color: var(--ludica-muted);
       font-size: 0.95rem;
       line-height: 1.45;
       white-space: pre-line;
@@ -70,43 +184,43 @@
 
     .grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       gap: 20px;
       align-items: stretch;
     }
 
     .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       min-width: 0;
       overflow: hidden;
+      background: var(--ludica-card);
+      border: 1px solid var(--ludica-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
 
     .card-header {
-      padding: 16px 18px 8px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 18px 20px 10px;
+      border-bottom: 1px solid var(--ludica-border);
     }
 
     .card-title {
       margin: 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1.3;
+      font-size: 1.18rem;
+      font-weight: 820;
+      line-height: 1.25;
     }
 
     .card-note {
-      margin: 5px 0 0;
-      color: #667085;
-      font-size: 0.88rem;
-      line-height: 1.35;
+      margin: 6px 0 0;
+      color: var(--ludica-muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
     }
 
     .chart-wrap {
       position: relative;
       width: 100%;
-      height: 520px;
+      height: 560px;
       padding: 18px;
     }
 
@@ -117,38 +231,52 @@
 
     #map {
       width: 100%;
-      height: 520px;
-      min-height: 520px;
+      height: 560px;
+      min-height: 560px;
       z-index: 1;
     }
 
     .source-note {
-      margin-top: 14px;
-      color: #667085;
+      margin: 14px 2px 0;
+      color: var(--ludica-muted);
       font-size: 0.82rem;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .debug {
+      display: none;
       margin-top: 14px;
       padding: 12px 14px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      color: #667085;
-      font-size: 0.82rem;
+      background: #fff;
+      border: 1px dashed var(--ludica-border);
+      border-radius: 14px;
+      color: var(--ludica-muted);
+      font-size: 0.8rem;
       line-height: 1.45;
       white-space: pre-wrap;
     }
 
+    .debug.is-visible {
+      display: block;
+    }
+
     .leaflet-popup-content {
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       line-height: 1.4;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
       .dashboard {
         padding: 14px;
+        border-radius: 20px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .year-display {
+        width: 100%;
       }
 
       .grid {
@@ -157,8 +285,8 @@
 
       .chart-wrap,
       #map {
-        height: 440px;
-        min-height: 440px;
+        height: 470px;
+        min-height: 470px;
       }
     }
 
@@ -167,14 +295,24 @@
         padding: 10px;
       }
 
+      .hero {
+        padding: 18px;
+      }
+
       .chart-wrap,
       #map {
-        height: 380px;
-        min-height: 380px;
+        height: 390px;
+        min-height: 390px;
       }
 
       .card-header {
         padding: 14px 14px 8px;
+      }
+
+      .year-button,
+      .play-button {
+        padding: 8px 12px;
+        font-size: 0.86rem;
       }
     }
   </style>
@@ -182,12 +320,26 @@
 
 <body>
   <main class="dashboard">
-    <header class="dashboard-header">
-      <h1 class="dashboard-title">Visualizzazione statistiche</h1>
-      <p class="dashboard-subtitle">
-        Dati aggiornati automaticamente da Google Sheets.
-      </p>
-    </header>
+    <section class="hero">
+      <div>
+        <p class="hero-kicker">LUDiCa in cifre</p>
+        <h1 class="hero-title">Statistiche per anno</h1>
+        <p class="hero-subtitle">
+          I dati sono visualizzati anno per anno, senza sommare edizioni diverse.
+          Usa i pulsanti per cambiare anno o avviare la sequenza automatica.
+        </p>
+      </div>
+
+      <div class="year-display" aria-live="polite">
+        <span class="year-display-label">Anno</span>
+        <span id="currentYearBig" class="year-display-value">—</span>
+      </div>
+    </section>
+
+    <nav id="controls" class="controls" aria-label="Selezione anno">
+      <button id="playButton" class="play-button" type="button">▶ Play</button>
+      <div id="yearButtons"></div>
+    </nav>
 
     <div id="status" class="status"></div>
 
@@ -204,7 +356,7 @@
 
       <article class="card">
         <div class="card-header">
-          <h2 class="card-title">Luoghi</h2>
+          <h2 class="card-title">Comunità</h2>
           <p id="mapNote" class="card-note">Caricamento mappa…</p>
         </div>
         <div id="map"></div>
@@ -212,54 +364,70 @@
     </section>
 
     <p class="source-note">
-      La visualizzazione legge i dati da CSV pubblicati da Google Sheets.
-      Quando il foglio viene aggiornato, la dashboard si aggiorna al successivo caricamento della pagina.
+      Fonte: CSV pubblicati da Google Sheets. La visualizzazione si aggiorna al caricamento della pagina.
     </p>
 
     <div id="debug" class="debug"></div>
   </main>
 
   <script>
-    /**************************************************************
-     * URL DEI DUE FOGLI GOOGLE SHEETS
-     **************************************************************/
-
     const BAR_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=535874584&single=true&output=csv";
 
     const MAP_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=1863177981&single=true&output=csv";
 
-    /**************************************************************
-     * CONFIGURAZIONE COLONNE
-     *
-     * Per ora lascio null, così il codice sceglie automaticamente:
-     * - per il grafico: prima colonna testuale + prima colonna numerica;
-     * - per la mappa: colonne con nomi simili a latitudine/longitudine.
-     *
-     * Se vuoi forzare i nomi, scrivili tra virgolette.
-     **************************************************************/
-
     const CONFIG = {
+      /*
+        Istogramma.
+
+        Il codice supporta due strutture:
+        1. Formato largo:
+           categoria | 2019 | 2020 | 2021 | 2022 ...
+
+        2. Formato lungo:
+           anno | categoria | valore
+
+        In entrambi i casi, mostra un solo anno alla volta.
+      */
+
       barLabelColumn: null,
+      barYearColumn: null,
       barValueColumn: null,
 
-      placeNameColumn: null,
+      /*
+        Mappa.
+
+        La colonna del nome luogo è forzata su "comunità",
+        come richiesto.
+      */
+
+      placeNameColumn: "comunità",
       latitudeColumn: null,
       longitudeColumn: null,
+      mapYearColumn: null,
       markerValueColumn: null,
 
-      maxBars: 20,
-      debug: true
+      maxBars: 40,
+      debug: false,
+      autoplayMs: 1800
     };
 
     let chartInstance = null;
     let mapInstance = null;
+    let allBarRows = [];
+    let allMapRows = [];
+    let years = [];
+    let currentYear = null;
+    let autoplayTimer = null;
 
     const statusEl = document.getElementById("status");
     const barNoteEl = document.getElementById("barNote");
     const mapNoteEl = document.getElementById("mapNote");
     const debugEl = document.getElementById("debug");
+    const yearButtonsEl = document.getElementById("yearButtons");
+    const playButtonEl = document.getElementById("playButton");
+    const currentYearBigEl = document.getElementById("currentYearBig");
 
     function showStatus(message) {
       statusEl.textContent = message;
@@ -343,41 +511,11 @@
           dynamicTyping: false,
           delimitersToGuess: [",", ";", "\t", "|"],
           complete: function(results) {
-            let rows = results.data.filter(row =>
+            const rows = results.data.filter(row =>
               Object.values(row).some(value => String(value ?? "").trim() !== "")
             );
 
-            /*
-              Se PapaParse non trova intestazioni sensate, rilegge il CSV senza header
-              e crea nomi colonna automatici: Colonna 1, Colonna 2, ecc.
-            */
-            const fields = results.meta && results.meta.fields ? results.meta.fields : [];
-            const badHeader =
-              !fields.length ||
-              fields.every(field => String(field).startsWith("__parsed_extra"));
-
-            if (badHeader) {
-              Papa.parse(text, {
-                header: false,
-                skipEmptyLines: true,
-                delimitersToGuess: [",", ";", "\t", "|"],
-                complete: function(rawResults) {
-                  const rawRows = rawResults.data;
-                  const maxCols = Math.max(...rawRows.map(row => row.length));
-                  const generatedRows = rawRows.map(row => {
-                    const obj = {};
-                    for (let i = 0; i < maxCols; i++) {
-                      obj[`Colonna ${i + 1}`] = row[i] ?? "";
-                    }
-                    return obj;
-                  });
-                  resolve(generatedRows);
-                },
-                error: reject
-              });
-            } else {
-              resolve(rows);
-            }
+            resolve(rows);
           },
           error: reject
         });
@@ -397,23 +535,16 @@
 
       for (const candidate of candidates) {
         const normalizedCandidate = normalizeText(candidate);
-
-        const exact = normalizedColumns.find(
-          column => column.normalized === normalizedCandidate
-        );
-
+        const exact = normalizedColumns.find(column => column.normalized === normalizedCandidate);
         if (exact) return exact.original;
       }
 
       for (const candidate of candidates) {
         const normalizedCandidate = normalizeText(candidate);
-
-        const partial = normalizedColumns.find(
-          column =>
-            column.normalized.includes(normalizedCandidate) ||
-            normalizedCandidate.includes(column.normalized)
+        const partial = normalizedColumns.find(column =>
+          column.normalized.includes(normalizedCandidate) ||
+          normalizedCandidate.includes(column.normalized)
         );
-
         if (partial) return partial.original;
       }
 
@@ -424,8 +555,9 @@
       let count = 0;
 
       for (const row of rows) {
-        const value = parseNumber(row[column]);
-        if (Number.isFinite(value)) count++;
+        if (Number.isFinite(parseNumber(row[column]))) {
+          count++;
+        }
       }
 
       return count;
@@ -436,10 +568,51 @@
 
       for (const row of rows) {
         const value = String(row[column] ?? "").trim();
-        if (value && !Number.isFinite(parseNumber(value))) count++;
+        if (value && !Number.isFinite(parseNumber(value))) {
+          count++;
+        }
       }
 
       return count;
+    }
+
+    function isYearText(value) {
+      const text = String(value ?? "").trim();
+      return /^(19|20)\d{2}$/.test(text);
+    }
+
+    function findYearColumns(columns) {
+      return columns.filter(column => isYearText(column));
+    }
+
+    function findYearColumnInRows(rows, columns) {
+      const preferred = findColumnByCandidates(columns, [
+        "anno",
+        "year",
+        "edizione"
+      ]);
+
+      if (preferred) return preferred;
+
+      let bestColumn = null;
+      let bestScore = -1;
+
+      for (const column of columns) {
+        let score = 0;
+
+        for (const row of rows) {
+          if (isYearText(row[column])) {
+            score++;
+          }
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestColumn = column;
+        }
+      }
+
+      return bestScore > 0 ? bestColumn : null;
     }
 
     function findBestNumericColumn(rows, columns, excludedColumns = []) {
@@ -453,7 +626,15 @@
 
         const normalized = normalizeText(column);
 
-        if (["lat", "latitude", "latitudine", "lon", "lng", "longitude", "longitudine"].includes(normalized)) {
+        if ([
+          "lat",
+          "latitude",
+          "latitudine",
+          "lon",
+          "lng",
+          "longitude",
+          "longitudine"
+        ].includes(normalized)) {
           continue;
         }
 
@@ -468,7 +649,9 @@
       return bestScore > 0 ? bestColumn : null;
     }
 
-    function findBestLabelColumn(rows, columns, numericColumn) {
+    function findBestLabelColumn(rows, columns, excludedColumns = []) {
+      const excluded = new Set(excludedColumns.filter(Boolean));
+
       const preferred = findColumnByCandidates(columns, [
         "categoria",
         "indicatore",
@@ -480,15 +663,11 @@
         "descrizione",
         "classe",
         "ambito",
-        "luogo",
-        "comune",
-        "citta",
-        "città",
-        "localita",
-        "località"
+        "dato",
+        "variabile"
       ]);
 
-      if (preferred && preferred !== numericColumn) {
+      if (preferred && !excluded.has(preferred)) {
         return preferred;
       }
 
@@ -496,7 +675,7 @@
       let bestScore = -1;
 
       for (const column of columns) {
-        if (column === numericColumn) continue;
+        if (excluded.has(column)) continue;
 
         const score = textScore(rows, column);
 
@@ -506,88 +685,228 @@
         }
       }
 
-      if (bestScore > 0) return bestColumn;
-
-      /*
-        Fallback estremo: usa la prima colonna diversa da quella numerica.
-      */
-      return columns.find(column => column !== numericColumn) || null;
+      return bestScore > 0 ? bestColumn : null;
     }
 
-    function aggregateForBarChart(rows, labelColumn, valueColumn, maxBars) {
-      const grouped = new Map();
-
-      for (const row of rows) {
-        const labelRaw = String(row[labelColumn] ?? "").trim();
-        const label = labelRaw || "Senza etichetta";
-        const value = parseNumber(row[valueColumn]);
-
-        if (!Number.isFinite(value)) continue;
-
-        grouped.set(label, (grouped.get(label) ?? 0) + value);
-      }
-
-      return Array.from(grouped.entries())
-        .map(([label, value]) => ({ label, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, maxBars);
-    }
-
-    function renderBarChart(rows) {
+    function detectBarModel(rows) {
       const columns = getColumns(rows);
 
-      if (!rows.length || !columns.length) {
-        barNoteEl.textContent = "Nessun dato disponibile per il grafico.";
-        return;
+      const wideYearColumns = findYearColumns(columns);
+
+      if (wideYearColumns.length) {
+        const labelColumn =
+          CONFIG.barLabelColumn ||
+          findBestLabelColumn(rows, columns, wideYearColumns);
+
+        return {
+          type: "wide",
+          labelColumn,
+          yearColumns: wideYearColumns
+        };
       }
 
-      const valueColumn =
-        CONFIG.barValueColumn ||
-        findBestNumericColumn(rows, columns);
+      const yearColumn =
+        CONFIG.barYearColumn ||
+        findYearColumnInRows(rows, columns);
 
       const labelColumn =
         CONFIG.barLabelColumn ||
-        findBestLabelColumn(rows, columns, valueColumn);
+        findBestLabelColumn(rows, columns, [yearColumn]);
 
-      if (!labelColumn || !valueColumn) {
-        barNoteEl.textContent =
-          "Non riesco a identificare le colonne per il grafico.";
-        return;
-      }
+      const valueColumn =
+        CONFIG.barValueColumn ||
+        findBestNumericColumn(rows, columns, [yearColumn, labelColumn]);
 
-      const data = aggregateForBarChart(
-        rows,
+      return {
+        type: "long",
+        yearColumn,
         labelColumn,
-        valueColumn,
-        CONFIG.maxBars
-      );
+        valueColumn
+      };
+    }
 
-      if (!data.length) {
-        barNoteEl.textContent =
-          `La colonna "${valueColumn}" non contiene valori numerici utilizzabili.`;
+    function extractYearsFromBar(rows) {
+      const model = detectBarModel(rows);
+
+      if (model.type === "wide") {
+        return model.yearColumns
+          .map(String)
+          .filter(isYearText)
+          .sort();
+      }
+
+      if (model.type === "long" && model.yearColumn) {
+        return Array.from(
+          new Set(
+            rows
+              .map(row => String(row[model.yearColumn] ?? "").trim())
+              .filter(isYearText)
+          )
+        ).sort();
+      }
+
+      return [];
+    }
+
+    function extractYearsFromMap(rows) {
+      const columns = getColumns(rows);
+      const yearColumn =
+        CONFIG.mapYearColumn ||
+        findYearColumnInRows(rows, columns);
+
+      if (!yearColumn) return [];
+
+      return Array.from(
+        new Set(
+          rows
+            .map(row => String(row[yearColumn] ?? "").trim())
+            .filter(isYearText)
+        )
+      ).sort();
+    }
+
+    function makeYearButtons() {
+      yearButtonsEl.innerHTML = "";
+
+      for (const year of years) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "year-button";
+        button.textContent = year;
+        button.dataset.year = year;
+
+        button.addEventListener("click", () => {
+          stopAutoplay();
+          setYear(year);
+        });
+
+        yearButtonsEl.appendChild(button);
+      }
+    }
+
+    function updateYearButtons() {
+      const buttons = yearButtonsEl.querySelectorAll(".year-button");
+
+      buttons.forEach(button => {
+        button.classList.toggle("is-active", button.dataset.year === currentYear);
+      });
+    }
+
+    function buildBarDataForYear(rows, year) {
+      const model = detectBarModel(rows);
+      const grouped = new Map();
+
+      if (model.type === "wide") {
+        if (!model.labelColumn) {
+          return {
+            labels: [],
+            values: [],
+            note: "Non riesco a identificare la colonna delle etichette."
+          };
+        }
+
+        for (const row of rows) {
+          const label = String(row[model.labelColumn] ?? "").trim() || "Senza etichetta";
+          const value = parseNumber(row[year]);
+
+          if (!Number.isFinite(value)) continue;
+
+          grouped.set(label, (grouped.get(label) ?? 0) + value);
+        }
+
+        const items = Array.from(grouped.entries())
+          .map(([label, value]) => ({ label, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, CONFIG.maxBars);
+
+        return {
+          labels: items.map(item => item.label),
+          values: items.map(item => item.value),
+          note: `Anno ${year}. Colonna etichette: "${model.labelColumn}".`
+        };
+      }
+
+      if (model.type === "long") {
+        if (!model.yearColumn || !model.labelColumn || !model.valueColumn) {
+          return {
+            labels: [],
+            values: [],
+            note: "Non riesco a identificare anno, etichetta e valore nel foglio."
+          };
+        }
+
+        const filteredRows = rows.filter(row =>
+          String(row[model.yearColumn] ?? "").trim() === year
+        );
+
+        for (const row of filteredRows) {
+          const label = String(row[model.labelColumn] ?? "").trim() || "Senza etichetta";
+          const value = parseNumber(row[model.valueColumn]);
+
+          if (!Number.isFinite(value)) continue;
+
+          grouped.set(label, (grouped.get(label) ?? 0) + value);
+        }
+
+        const items = Array.from(grouped.entries())
+          .map(([label, value]) => ({ label, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, CONFIG.maxBars);
+
+        return {
+          labels: items.map(item => item.label),
+          values: items.map(item => item.value),
+          note: `Anno ${year}. Colonne: "${model.labelColumn}" / "${model.valueColumn}".`
+        };
+      }
+
+      return {
+        labels: [],
+        values: [],
+        note: "Formato dati non riconosciuto."
+      };
+    }
+
+    function renderBarChartForYear(year) {
+      const result = buildBarDataForYear(allBarRows, year);
+
+      if (!result.labels.length) {
+        barNoteEl.textContent = `Nessun dato numerico disponibile per l'anno ${year}.`;
+
+        if (chartInstance) {
+          chartInstance.destroy();
+          chartInstance = null;
+        }
+
         return;
       }
 
-      barNoteEl.textContent =
-        `Grafico costruito usando "${labelColumn}" e "${valueColumn}".`;
+      barNoteEl.textContent = result.note;
 
       const ctx = document.getElementById("barChart");
 
       if (chartInstance) {
-        chartInstance.destroy();
+        chartInstance.data.labels = result.labels;
+        chartInstance.data.datasets[0].label = year;
+        chartInstance.data.datasets[0].data = result.values;
+        chartInstance.update();
+        return;
       }
 
       chartInstance = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: data.map(item => item.label),
+          labels: result.labels,
           datasets: [
             {
-              label: valueColumn,
-              data: data.map(item => item.value),
+              label: year,
+              data: result.values,
               borderWidth: 1,
-              backgroundColor: "rgba(139, 30, 63, 0.72)",
-              borderColor: "rgba(139, 30, 63, 1)"
+              backgroundColor: "rgba(139, 30, 63, 0.74)",
+              borderColor: "rgba(139, 30, 63, 1)",
+              borderRadius: 8,
+              barPercentage: 0.78,
+              categoryPercentage: 0.82
             }
           ]
         },
@@ -595,6 +914,10 @@
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: "y",
+          animation: {
+            duration: 750,
+            easing: "easeOutQuart"
+          },
           plugins: {
             legend: {
               display: false
@@ -603,7 +926,7 @@
               callbacks: {
                 label: function(context) {
                   const value = context.parsed.x;
-                  return `${valueColumn}: ${new Intl.NumberFormat("it-IT").format(value)}`;
+                  return `${year}: ${new Intl.NumberFormat("it-IT").format(value)}`;
                 }
               }
             }
@@ -611,6 +934,9 @@
           scales: {
             x: {
               beginAtZero: true,
+              grid: {
+                color: "rgba(0, 0, 0, 0.06)"
+              },
               ticks: {
                 callback: function(value) {
                   return new Intl.NumberFormat("it-IT").format(value);
@@ -618,6 +944,9 @@
               }
             },
             y: {
+              grid: {
+                display: false
+              },
               ticks: {
                 autoSkip: false,
                 font: {
@@ -631,11 +960,11 @@
     }
 
     function getRadius(value, minValue, maxValue) {
-      if (!Number.isFinite(value)) return 8;
-      if (minValue === maxValue) return 10;
+      if (!Number.isFinite(value)) return 9;
+      if (minValue === maxValue) return 12;
 
       const normalized = (value - minValue) / (maxValue - minValue);
-      return 7 + normalized * 18;
+      return 8 + normalized * 18;
     }
 
     function createEmptyMap(message) {
@@ -662,7 +991,8 @@
       }, 250);
     }
 
-    function renderMap(rows) {
+    function renderMapForYear(year) {
+      const rows = allMapRows;
       const columns = getColumns(rows);
 
       if (!rows.length || !columns.length) {
@@ -693,6 +1023,8 @@
       const placeColumn =
         CONFIG.placeNameColumn ||
         findColumnByCandidates(columns, [
+          "comunità",
+          "comunita",
           "luogo",
           "comune",
           "citta",
@@ -705,9 +1037,13 @@
           "denominazione"
         ]);
 
+      const yearColumn =
+        CONFIG.mapYearColumn ||
+        findYearColumnInRows(rows, columns);
+
       const valueColumn =
         CONFIG.markerValueColumn ||
-        findBestNumericColumn(rows, columns, [latColumn, lonColumn]);
+        findBestNumericColumn(rows, columns, [latColumn, lonColumn, yearColumn]);
 
       if (!latColumn || !lonColumn) {
         mapNoteEl.textContent =
@@ -716,18 +1052,34 @@
         return;
       }
 
-      const points = rows
+      let filteredRows = rows;
+
+      if (yearColumn) {
+        const rowsForYear = rows.filter(row =>
+          String(row[yearColumn] ?? "").trim() === year
+        );
+
+        /*
+          Se il foglio mappa non è organizzato per anno, mostra tutti i luoghi.
+        */
+        if (rowsForYear.length) {
+          filteredRows = rowsForYear;
+        }
+      }
+
+      const points = filteredRows
         .map(row => {
           const lat = parseNumber(row[latColumn]);
           const lon = parseNumber(row[lonColumn]);
           const value = valueColumn ? parseNumber(row[valueColumn]) : NaN;
+          const place = placeColumn ? String(row[placeColumn] ?? "").trim() : "";
 
           return {
             row,
             lat,
             lon,
             value,
-            place: placeColumn ? String(row[placeColumn] ?? "").trim() : ""
+            place
           };
         })
         .filter(point =>
@@ -741,13 +1093,13 @@
 
       if (!points.length) {
         mapNoteEl.textContent =
-          `Non ho trovato coordinate valide nelle colonne "${latColumn}" e "${lonColumn}".`;
+          `Non ho trovato coordinate valide per l'anno ${year}.`;
         createEmptyMap("Non ho trovato coordinate valide.");
         return;
       }
 
       mapNoteEl.textContent =
-        `Mappa costruita usando "${latColumn}" e "${lonColumn}".`;
+        `Mappa costruita usando "${placeColumn || "luogo"}", "${latColumn}" e "${lonColumn}".`;
 
       if (mapInstance) {
         mapInstance.remove();
@@ -778,18 +1130,21 @@
           radius: markerRadius,
           color: "#8b1e3f",
           weight: 2,
-          fillColor: "#8b1e3f",
-          fillOpacity: 0.55
+          fillColor: "#d79a2b",
+          fillOpacity: 0.72
         }).addTo(mapInstance);
 
-        const popupTitle = point.place || "Luogo";
+        const popupTitle = point.place || "Comunità";
         const popupValue =
           valueColumn && Number.isFinite(point.value)
             ? `<br><strong>${escapeHtml(valueColumn)}:</strong> ${new Intl.NumberFormat("it-IT").format(point.value)}`
             : "";
 
+        const popupYear =
+          year ? `<br><strong>Anno:</strong> ${escapeHtml(year)}` : "";
+
         marker.bindPopup(
-          `<strong>${escapeHtml(popupTitle)}</strong>${popupValue}<br><small>${point.lat}, ${point.lon}</small>`
+          `<strong>${escapeHtml(popupTitle)}</strong>${popupYear}${popupValue}<br><small>${point.lat}, ${point.lon}</small>`
         );
 
         bounds.push([point.lat, point.lon]);
@@ -799,7 +1154,7 @@
         mapInstance.setView(bounds[0], 10);
       } else {
         mapInstance.fitBounds(bounds, {
-          padding: [30, 30]
+          padding: [32, 32]
         });
       }
 
@@ -808,34 +1163,94 @@
       }, 250);
     }
 
-    function writeDebug(barRows, mapRows) {
+    function setYear(year) {
+      currentYear = String(year);
+      currentYearBigEl.textContent = currentYear;
+
+      updateYearButtons();
+      renderBarChartForYear(currentYear);
+      renderMapForYear(currentYear);
+    }
+
+    function startAutoplay() {
+      if (!years.length) return;
+
+      playButtonEl.textContent = "⏸ Pausa";
+
+      autoplayTimer = window.setInterval(() => {
+        const currentIndex = years.indexOf(currentYear);
+        const nextIndex = currentIndex >= 0
+          ? (currentIndex + 1) % years.length
+          : 0;
+
+        setYear(years[nextIndex]);
+      }, CONFIG.autoplayMs);
+    }
+
+    function stopAutoplay() {
+      if (autoplayTimer) {
+        window.clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+
+      playButtonEl.textContent = "▶ Play";
+    }
+
+    function toggleAutoplay() {
+      if (autoplayTimer) {
+        stopAutoplay();
+      } else {
+        startAutoplay();
+      }
+    }
+
+    function writeDebug() {
       if (!CONFIG.debug) {
-        debugEl.style.display = "none";
+        debugEl.classList.remove("is-visible");
         return;
       }
 
-      const barColumns = getColumns(barRows);
-      const mapColumns = getColumns(mapRows);
+      debugEl.classList.add("is-visible");
 
       debugEl.textContent =
         "Colonne rilevate nel foglio istogramma:\n" +
-        barColumns.join(" | ") +
+        getColumns(allBarRows).join(" | ") +
         "\n\nColonne rilevate nel foglio mappa:\n" +
-        mapColumns.join(" | ");
+        getColumns(allMapRows).join(" | ");
     }
 
     async function initDashboard() {
       clearStatus();
 
       try {
-        const [barRows, mapRows] = await Promise.all([
+        const loaded = await Promise.all([
           loadCsv(BAR_CSV_URL),
           loadCsv(MAP_CSV_URL)
         ]);
 
-        writeDebug(barRows, mapRows);
-        renderBarChart(barRows);
-        renderMap(mapRows);
+        allBarRows = loaded[0];
+        allMapRows = loaded[1];
+
+        writeDebug();
+
+        const barYears = extractYearsFromBar(allBarRows);
+        const mapYears = extractYearsFromMap(allMapRows);
+
+        years = Array.from(new Set([...barYears, ...mapYears]))
+          .filter(isYearText)
+          .sort();
+
+        if (!years.length) {
+          showStatus(
+            "Non ho trovato anni nei dati. Controlla che il foglio abbia colonne 2019, 2020, 2021... oppure una colonna anno."
+          );
+          currentYearBigEl.textContent = "—";
+          return;
+        }
+
+        makeYearButtons();
+
+        setYear(years[years.length - 1]);
       } catch (error) {
         console.error(error);
 
@@ -845,9 +1260,12 @@
 
         barNoteEl.textContent = "Errore nel caricamento dati.";
         mapNoteEl.textContent = "Errore nel caricamento dati.";
+        currentYearBigEl.textContent = "—";
         createEmptyMap("Errore nel caricamento dati.");
       }
     }
+
+    playButtonEl.addEventListener("click", toggleAutoplay);
 
     window.addEventListener("load", initDashboard);
 
