@@ -6,25 +6,114 @@
 
   <title>LUDiCa in cifre</title>
 
+  <!-- Libreria per il grafico a barre -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Libreria per leggere i CSV pubblicati da Google Sheets -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+  <!-- Libreria Leaflet per la mappa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
+    /******************************************************************
+     * 1. VARIABILI GRAFICHE PRINCIPALI
+     *
+     * Qui puoi modificare rapidamente colori, sfondi, bordi, ombre
+     * e font di tutta la visualizzazione.
+     *
+     * Per cambiare colore, sostituisci i valori esadecimali, per esempio:
+     * #8b1e3f
+     * #d79a2b
+     * #f7f4ef
+     *
+     * Puoi usare un selettore colori online e copiare qui il codice HEX.
+     ******************************************************************/
+
     :root {
+      /**************************************************************
+       * COLORI PRINCIPALI
+       **************************************************************/
+
+      /* Colore principale: usato per header, pulsante Play, bordi e grafico */
       --ludica-red: #8b1e3f;
+
+      /* Variante più scura del colore principale: usata nel gradiente dell'header */
       --ludica-red-dark: #65142d;
+
+      /* Colore secondario/dorato: usato per anno attivo e punti della mappa */
       --ludica-gold: #d79a2b;
+
+      /**************************************************************
+       * COLORI DI SFONDO
+       **************************************************************/
+
+      /* Sfondo generale del contenitore della dashboard */
       --ludica-bg: #f7f4ef;
+
+      /* Sfondo delle schede del grafico e della mappa */
       --ludica-card: #ffffff;
+
+      /* Sfondo dei controlli degli anni */
+      --ludica-controls-bg: rgba(255, 255, 255, 0.78);
+
+      /**************************************************************
+       * COLORI DEL TESTO
+       **************************************************************/
+
+      /* Colore principale del testo */
       --ludica-text: #202124;
+
+      /* Colore del testo secondario: note, sottotitoli, descrizioni */
       --ludica-muted: #6b7280;
+
+      /* Colore del testo nell'header superiore */
+      --ludica-hero-text: #ffffff;
+
+      /**************************************************************
+       * BORDI, OMBRE E FORME
+       **************************************************************/
+
+      /* Colore dei bordi delle schede */
       --ludica-border: #e6ddd2;
+
+      /* Ombra delle schede */
       --shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
+
+      /* Arrotondamento generale delle schede */
       --radius: 22px;
+
+      /**************************************************************
+       * FONT
+       *
+       * Font globale della visualizzazione.
+       * Puoi sostituire questa riga con altri font di sistema.
+       *
+       * Esempio più classico:
+       * --font-main: Georgia, "Times New Roman", serif;
+       *
+       * Esempio sans-serif:
+       * --font-main: Arial, Helvetica, sans-serif;
+       **************************************************************/
+
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      /*
+       * Font dei titoli.
+       * Puoi lasciarlo uguale al font principale oppure differenziarlo.
+       */
+      --font-title: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      /*
+       * Font dei numeri grandi, come l'anno visualizzato nell'header.
+       */
+      --font-numbers: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+
+    /******************************************************************
+     * 2. IMPOSTAZIONI GENERALI DELLA PAGINA
+     ******************************************************************/
 
     * {
       box-sizing: border-box;
@@ -34,22 +123,56 @@
     body {
       margin: 0;
       padding: 0;
+
+      /*
+       * Sfondo esterno.
+       * Lascia transparent se incorpori la pagina in WordPress
+       * e vuoi che si veda lo sfondo della pagina WordPress.
+       *
+       * Esempio:
+       * background: #ffffff;
+       */
       background: transparent;
+
       color: var(--ludica-text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      /*
+       * Font globale di tutta la visualizzazione.
+       */
+      font-family: var(--font-main);
     }
+
+    /******************************************************************
+     * 3. CONTENITORE GENERALE
+     ******************************************************************/
 
     .dashboard {
       width: 100%;
       max-width: 1320px;
       margin: 0 auto;
       padding: 22px;
+
+      /*
+       * Sfondo generale della visualizzazione.
+       *
+       * Se vuoi uno sfondo semplice, sostituisci tutto con:
+       * background: var(--ludica-bg);
+       *
+       * Se vuoi eliminare gli effetti circolari chiari,
+       * usa solo:
+       * background: #f7f4ef;
+       */
       background:
         radial-gradient(circle at top left, rgba(215, 154, 43, 0.18), transparent 30%),
         radial-gradient(circle at bottom right, rgba(139, 30, 63, 0.12), transparent 30%),
         var(--ludica-bg);
+
       border-radius: 28px;
     }
+
+    /******************************************************************
+     * 4. HEADER SUPERIORE
+     ******************************************************************/
 
     .hero {
       display: grid;
@@ -59,13 +182,27 @@
       margin-bottom: 18px;
       padding: 24px;
       border-radius: 26px;
+
+      /*
+       * Sfondo dell'header.
+       *
+       * Versione attuale: gradiente tra due colori.
+       * Per uno sfondo uniforme:
+       * background: var(--ludica-red);
+       */
       background: linear-gradient(135deg, var(--ludica-red), var(--ludica-red-dark));
-      color: #fff;
+
+      color: var(--ludica-hero-text);
       box-shadow: var(--shadow);
     }
 
     .hero-kicker {
       margin: 0 0 6px;
+
+      /*
+       * Font della piccola etichetta sopra il titolo.
+       */
+      font-family: var(--font-title);
       font-size: 0.82rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -75,6 +212,11 @@
 
     .hero-title {
       margin: 0;
+
+      /*
+       * Font del titolo principale.
+       */
+      font-family: var(--font-title);
       font-size: clamp(1.8rem, 4vw, 3.6rem);
       line-height: 0.98;
       font-weight: 850;
@@ -83,22 +225,37 @@
     .hero-subtitle {
       margin: 12px 0 0;
       max-width: 760px;
+
+      /*
+       * Font del sottotitolo dell'header.
+       */
+      font-family: var(--font-main);
       color: rgba(255, 255, 255, 0.86);
       font-size: 1rem;
       line-height: 1.5;
     }
+
+    /******************************************************************
+     * 5. RIQUADRO DELL'ANNO GRANDE
+     ******************************************************************/
 
     .year-display {
       min-width: 170px;
       text-align: center;
       padding: 18px 20px;
       border-radius: 22px;
+
+      /*
+       * Sfondo del riquadro che mostra l'anno corrente.
+       */
       background: rgba(255, 255, 255, 0.14);
+
       border: 1px solid rgba(255, 255, 255, 0.22);
       backdrop-filter: blur(8px);
     }
 
     .year-display-label {
+      font-family: var(--font-title);
       font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -109,11 +266,20 @@
     .year-display-value {
       display: block;
       margin-top: 4px;
+
+      /*
+       * Font del numero grande dell'anno.
+       */
+      font-family: var(--font-numbers);
       font-size: clamp(2.4rem, 5vw, 4.6rem);
       line-height: 1;
       font-weight: 900;
       color: #fff;
     }
+
+    /******************************************************************
+     * 6. CONTROLLI: PLAY E PULSANTI ANNO
+     ******************************************************************/
 
     .controls {
       display: flex;
@@ -122,7 +288,12 @@
       align-items: center;
       margin: 0 0 18px;
       padding: 14px;
-      background: rgba(255, 255, 255, 0.78);
+
+      /*
+       * Sfondo della barra dei controlli.
+       */
+      background: var(--ludica-controls-bg);
+
       border: 1px solid var(--ludica-border);
       border-radius: 20px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
@@ -142,12 +313,21 @@
       color: var(--ludica-text);
       border-radius: 999px;
       padding: 9px 14px;
+
+      /*
+       * Font dei pulsanti.
+       */
+      font-family: var(--font-main);
       font-size: 0.92rem;
       font-weight: 700;
+
       cursor: pointer;
       transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease, border 0.16s ease;
     }
 
+    /*
+     * Colore del pulsante Play.
+     */
     .play-button {
       background: var(--ludica-red);
       border-color: var(--ludica-red);
@@ -160,11 +340,18 @@
       transform: translateY(-1px);
     }
 
+    /*
+     * Colore dell'anno selezionato.
+     */
     .year-button.is-active {
       background: var(--ludica-gold);
       border-color: var(--ludica-gold);
       color: #23180a;
     }
+
+    /******************************************************************
+     * 7. MESSAGGI DI ERRORE O AVVISO
+     ******************************************************************/
 
     .status {
       display: none;
@@ -175,6 +362,7 @@
       border-left: 5px solid var(--ludica-red);
       border-radius: 14px;
       color: var(--ludica-muted);
+      font-family: var(--font-main);
       font-size: 0.95rem;
       line-height: 1.45;
       white-space: pre-line;
@@ -183,6 +371,10 @@
     .status.is-visible {
       display: block;
     }
+
+    /******************************************************************
+     * 8. GRIGLIA PRINCIPALE: GRAFICO + MAPPA
+     ******************************************************************/
 
     .grid {
       display: grid;
@@ -194,7 +386,12 @@
     .card {
       min-width: 0;
       overflow: hidden;
+
+      /*
+       * Sfondo delle singole schede.
+       */
       background: var(--ludica-card);
+
       border: 1px solid var(--ludica-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -207,6 +404,11 @@
 
     .card-title {
       margin: 0;
+
+      /*
+       * Font dei titoli delle schede: "Dati quantitativi", "Comunità".
+       */
+      font-family: var(--font-title);
       font-size: 1.18rem;
       font-weight: 820;
       line-height: 1.25;
@@ -215,9 +417,21 @@
     .card-note {
       margin: 6px 0 0;
       color: var(--ludica-muted);
+
+      /*
+       * Font delle note sotto i titoli delle schede.
+       */
+      font-family: var(--font-main);
       font-size: 0.9rem;
       line-height: 1.4;
     }
+
+    /******************************************************************
+     * 9. DIMENSIONI DEL GRAFICO E DELLA MAPPA
+     *
+     * Puoi modificare height e min-height per rendere più alta
+     * o più bassa la visualizzazione.
+     ******************************************************************/
 
     .chart-wrap {
       position: relative;
@@ -238,34 +452,34 @@
       z-index: 1;
     }
 
+    /******************************************************************
+     * 10. NOTA FINALE
+     ******************************************************************/
+
     .source-note {
       margin: 14px 2px 0;
       color: var(--ludica-muted);
+      font-family: var(--font-main);
       font-size: 0.82rem;
       line-height: 1.45;
     }
 
-    .debug {
-      display: none;
-      margin-top: 14px;
-      padding: 12px 14px;
-      background: #fff;
-      border: 1px dashed var(--ludica-border);
-      border-radius: 14px;
-      color: var(--ludica-muted);
-      font-size: 0.8rem;
-      line-height: 1.45;
-      white-space: pre-wrap;
-    }
-
-    .debug.is-visible {
-      display: block;
-    }
+    /******************************************************************
+     * 11. POPUP DELLA MAPPA
+     ******************************************************************/
 
     .leaflet-popup-content {
+      /*
+       * Font del popup sulla mappa.
+       */
+      font-family: var(--font-main);
       font-size: 0.92rem;
       line-height: 1.4;
     }
+
+    /******************************************************************
+     * 12. RESPONSIVE: TABLET E SMARTPHONE
+     ******************************************************************/
 
     @media (max-width: 980px) {
       .dashboard {
@@ -368,36 +582,78 @@
     <p class="source-note">
       Fonte: CSV pubblicati da Google Sheets. La visualizzazione si aggiorna al caricamento della pagina.
     </p>
-
-    <div id="debug" class="debug"></div>
   </main>
 
   <script>
+    /******************************************************************
+     * 13. URL DEI CSV PUBBLICATI DA GOOGLE SHEETS
+     *
+     * Qui puoi cambiare i link ai fogli Google.
+     *
+     * BAR_CSV_URL = foglio usato per l'istogramma
+     * MAP_CSV_URL = foglio usato per la mappa
+     ******************************************************************/
+
     const BAR_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=535874584&single=true&output=csv";
 
     const MAP_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=1863177981&single=true&output=csv";
 
+    /******************************************************************
+     * 14. CONFIGURAZIONE DEI DATI
+     *
+     * Qui puoi modificare i nomi delle colonne usate.
+     *
+     * Foglio istogramma:
+     * - barLabelColumn: colonna con le voci da mostrare a sinistra
+     * - gli anni vengono riconosciuti dalle colonne 2019, 2020, 2021...
+     *
+     * Foglio mappa:
+     * - placeNameColumn: nome del centro abitato
+     * - latitudeColumn: latitudine
+     * - longitudeColumn: longitudine
+     * - mapYearColumn: anno
+     ******************************************************************/
+
     const CONFIG = {
-      barLabelColumn: null,
+      barLabelColumn: "Attività, enti e persone coinvolte",
       barYearColumn: null,
       barValueColumn: null,
 
-      /*
-        Qui NON usiamo più direttamente row["comunità"].
-        Il codice cerca la colonna corrispondente in modo flessibile.
-      */
-      placeNameColumn: "comunità",
-
-      latitudeColumn: null,
-      longitudeColumn: null,
-      mapYearColumn: null,
+      placeNameColumn: "Comunità",
+      latitudeColumn: "latitude",
+      longitudeColumn: "longitude",
+      mapYearColumn: "Anno",
       markerValueColumn: null,
 
+      /*
+       * Numero massimo di barre visualizzate nel grafico.
+       * Aumenta questo valore se vuoi mostrare più righe.
+       */
       maxBars: 40,
-      debug: true,
-      autoplayMs: 1800
+
+      /*
+       * Velocità del Play automatico, in millisecondi.
+       * 1800 = 1,8 secondi.
+       * 1000 = 1 secondo.
+       * 3000 = 3 secondi.
+       */
+      autoplayMs: 1800,
+
+      /*
+       * Colori del grafico a barre.
+       * Puoi sostituirli con colori HEX, per esempio:
+       * barColor: "#003366"
+       */
+      barColor: "rgba(139, 30, 63, 0.74)",
+      barBorderColor: "rgba(139, 30, 63, 1)",
+
+      /*
+       * Colori dei punti sulla mappa.
+       */
+      mapPointBorderColor: "#8b1e3f",
+      mapPointFillColor: "#d79a2b"
     };
 
     let chartInstance = null;
@@ -411,7 +667,6 @@
     const statusEl = document.getElementById("status");
     const barNoteEl = document.getElementById("barNote");
     const mapNoteEl = document.getElementById("mapNote");
-    const debugEl = document.getElementById("debug");
     const yearButtonsEl = document.getElementById("yearButtons");
     const playButtonEl = document.getElementById("playButton");
     const currentYearBigEl = document.getElementById("currentYearBig");
@@ -514,58 +769,29 @@
       return Object.keys(rows[0]).filter(column => String(column).trim() !== "");
     }
 
-    function findColumnByCandidates(columns, candidates) {
-      const normalizedColumns = columns.map(column => ({
-        original: column,
-        normalized: normalizeText(column)
-      }));
+    function resolveColumn(columns, wantedName) {
+      if (!wantedName) return null;
 
-      for (const candidate of candidates) {
-        const normalizedCandidate = normalizeText(candidate);
+      const wanted = normalizeText(wantedName);
 
-        const exact = normalizedColumns.find(
-          column => column.normalized === normalizedCandidate
-        );
-
-        if (exact) return exact.original;
-      }
-
-      for (const candidate of candidates) {
-        const normalizedCandidate = normalizeText(candidate);
-
-        const partial = normalizedColumns.find(column =>
-          column.normalized.includes(normalizedCandidate) ||
-          normalizedCandidate.includes(column.normalized)
-        );
-
-        if (partial) return partial.original;
-      }
-
-      return null;
-    }
-
-    /*
-      Questa è la correzione principale:
-      se CONFIG.placeNameColumn = "comunità", prima trova il vero nome
-      della colonna presente nel CSV, per esempio "Comunità".
-    */
-    function resolveConfiguredColumn(columns, configuredName) {
-      if (!configuredName) return null;
-
-      const configuredNormalized = normalizeText(configuredName);
-
-      const exact = columns.find(column =>
-        normalizeText(column) === configuredNormalized
-      );
-
+      const exact = columns.find(column => normalizeText(column) === wanted);
       if (exact) return exact;
 
       const partial = columns.find(column =>
-        normalizeText(column).includes(configuredNormalized) ||
-        configuredNormalized.includes(normalizeText(column))
+        normalizeText(column).includes(wanted) ||
+        wanted.includes(normalizeText(column))
       );
 
       return partial || null;
+    }
+
+    function findColumnByCandidates(columns, candidates) {
+      for (const candidate of candidates) {
+        const found = resolveColumn(columns, candidate);
+        if (found) return found;
+      }
+
+      return null;
     }
 
     function numericScore(rows, column) {
@@ -603,14 +829,12 @@
       return columns.filter(column => isYearText(column));
     }
 
-    function findYearColumnInRows(rows, columns) {
-      const configured =
-        resolveConfiguredColumn(columns, CONFIG.barYearColumn) ||
-        resolveConfiguredColumn(columns, CONFIG.mapYearColumn);
-
+    function findYearColumnInRows(rows, columns, preferredName) {
+      const configured = resolveColumn(columns, preferredName);
       if (configured) return configured;
 
       const preferred = findColumnByCandidates(columns, [
+        "Anno",
         "anno",
         "year",
         "edizione"
@@ -676,14 +900,14 @@
     function findBestLabelColumn(rows, columns, excludedColumns = []) {
       const excluded = new Set(excludedColumns.filter(Boolean));
 
-      const configured =
-        resolveConfiguredColumn(columns, CONFIG.barLabelColumn);
+      const configured = resolveColumn(columns, CONFIG.barLabelColumn);
 
       if (configured && !excluded.has(configured)) {
         return configured;
       }
 
       const preferred = findColumnByCandidates(columns, [
+        "Attività, enti e persone coinvolte",
         "categoria",
         "indicatore",
         "voce",
@@ -725,7 +949,7 @@
 
       if (wideYearColumns.length) {
         const labelColumn =
-          resolveConfiguredColumn(columns, CONFIG.barLabelColumn) ||
+          resolveColumn(columns, CONFIG.barLabelColumn) ||
           findBestLabelColumn(rows, columns, wideYearColumns);
 
         return {
@@ -736,15 +960,14 @@
       }
 
       const yearColumn =
-        resolveConfiguredColumn(columns, CONFIG.barYearColumn) ||
-        findYearColumnInRows(rows, columns);
+        findYearColumnInRows(rows, columns, CONFIG.barYearColumn);
 
       const labelColumn =
-        resolveConfiguredColumn(columns, CONFIG.barLabelColumn) ||
+        resolveColumn(columns, CONFIG.barLabelColumn) ||
         findBestLabelColumn(rows, columns, [yearColumn]);
 
       const valueColumn =
-        resolveConfiguredColumn(columns, CONFIG.barValueColumn) ||
+        resolveColumn(columns, CONFIG.barValueColumn) ||
         findBestNumericColumn(rows, columns, [yearColumn, labelColumn]);
 
       return {
@@ -782,8 +1005,7 @@
       const columns = getColumns(rows);
 
       const yearColumn =
-        resolveConfiguredColumn(columns, CONFIG.mapYearColumn) ||
-        findYearColumnInRows(rows, columns);
+        findYearColumnInRows(rows, columns, CONFIG.mapYearColumn);
 
       if (!yearColumn) return [];
 
@@ -794,33 +1016,6 @@
             .filter(isYearText)
         )
       ).sort();
-    }
-
-    function makeYearButtons() {
-      yearButtonsEl.innerHTML = "";
-
-      for (const year of years) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "year-button";
-        button.textContent = year;
-        button.dataset.year = year;
-
-        button.addEventListener("click", () => {
-          stopAutoplay();
-          setYear(year);
-        });
-
-        yearButtonsEl.appendChild(button);
-      }
-    }
-
-    function updateYearButtons() {
-      const buttons = yearButtonsEl.querySelectorAll(".year-button");
-
-      buttons.forEach(button => {
-        button.classList.toggle("is-active", button.dataset.year === currentYear);
-      });
     }
 
     function buildBarDataForYear(rows, year) {
@@ -853,7 +1048,7 @@
         return {
           labels: items.map(item => item.label),
           values: items.map(item => item.value),
-          note: `Anno ${year}. Colonna etichette: "${model.labelColumn}".`
+          note: `Anno ${year}.`
         };
       }
 
@@ -887,7 +1082,7 @@
         return {
           labels: items.map(item => item.label),
           values: items.map(item => item.value),
-          note: `Anno ${year}. Colonne: "${model.labelColumn}" / "${model.valueColumn}".`
+          note: `Anno ${year}.`
         };
       }
 
@@ -920,6 +1115,13 @@
         chartInstance.data.labels = result.labels;
         chartInstance.data.datasets[0].label = year;
         chartInstance.data.datasets[0].data = result.values;
+
+        /*
+         * Aggiorna anche i colori se li modifichi in CONFIG.
+         */
+        chartInstance.data.datasets[0].backgroundColor = CONFIG.barColor;
+        chartInstance.data.datasets[0].borderColor = CONFIG.barBorderColor;
+
         chartInstance.update();
         return;
       }
@@ -933,8 +1135,14 @@
               label: year,
               data: result.values,
               borderWidth: 1,
-              backgroundColor: "rgba(139, 30, 63, 0.74)",
-              borderColor: "rgba(139, 30, 63, 1)",
+
+              /*
+               * Colore delle barre.
+               * Si modifica nella sezione CONFIG.
+               */
+              backgroundColor: CONFIG.barColor,
+              borderColor: CONFIG.barBorderColor,
+
               borderRadius: 8,
               barPercentage: 0.78,
               categoryPercentage: 0.82
@@ -969,6 +1177,12 @@
                 color: "rgba(0, 0, 0, 0.06)"
               },
               ticks: {
+                /*
+                 * Font dei numeri sull'asse X del grafico.
+                 */
+                font: {
+                  family: getComputedStyle(document.documentElement).getPropertyValue("--font-main")
+                },
                 callback: function(value) {
                   return new Intl.NumberFormat("it-IT").format(value);
                 }
@@ -981,6 +1195,7 @@
               ticks: {
                 autoSkip: false,
                 font: {
+                  family: getComputedStyle(document.documentElement).getPropertyValue("--font-main"),
                   size: 11
                 }
               }
@@ -988,14 +1203,6 @@
           }
         }
       });
-    }
-
-    function getRadius(value, minValue, maxValue) {
-      if (!Number.isFinite(value)) return 9;
-      if (minValue === maxValue) return 12;
-
-      const normalized = (value - minValue) / (maxValue - minValue);
-      return 8 + normalized * 18;
     }
 
     function createEmptyMap(message) {
@@ -1007,6 +1214,10 @@
         scrollWheelZoom: false
       }).setView([39.2238, 9.1217], 6);
 
+      /*
+       * Sfondo cartografico.
+       * Questo è OpenStreetMap.
+       */
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap"
@@ -1033,27 +1244,28 @@
       }
 
       const latColumn =
-        resolveConfiguredColumn(columns, CONFIG.latitudeColumn) ||
+        resolveColumn(columns, CONFIG.latitudeColumn) ||
         findColumnByCandidates(columns, [
-          "latitudine",
           "latitude",
+          "latitudine",
           "lat",
           "y"
         ]);
 
       const lonColumn =
-        resolveConfiguredColumn(columns, CONFIG.longitudeColumn) ||
+        resolveColumn(columns, CONFIG.longitudeColumn) ||
         findColumnByCandidates(columns, [
-          "longitudine",
           "longitude",
+          "longitudine",
           "lon",
           "lng",
           "x"
         ]);
 
       const placeColumn =
-        resolveConfiguredColumn(columns, CONFIG.placeNameColumn) ||
+        resolveColumn(columns, CONFIG.placeNameColumn) ||
         findColumnByCandidates(columns, [
+          "Comunità",
           "comunità",
           "comunita",
           "centro abitato",
@@ -1064,23 +1276,15 @@
           "città",
           "localita",
           "località",
-          "sede",
-          "indirizzo",
           "nome",
           "denominazione"
         ]);
 
       const yearColumn =
-        resolveConfiguredColumn(columns, CONFIG.mapYearColumn) ||
-        findYearColumnInRows(rows, columns);
-
-      const valueColumn =
-        resolveConfiguredColumn(columns, CONFIG.markerValueColumn) ||
-        findBestNumericColumn(rows, columns, [latColumn, lonColumn, yearColumn]);
+        findYearColumnInRows(rows, columns, CONFIG.mapYearColumn);
 
       if (!latColumn || !lonColumn) {
-        mapNoteEl.textContent =
-          "La mappa richiede colonne di latitudine e longitudine.";
+        mapNoteEl.textContent = "La mappa richiede colonne di latitudine e longitudine.";
         createEmptyMap("La mappa richiede colonne di latitudine e longitudine.");
         return;
       }
@@ -1101,19 +1305,11 @@
         .map(row => {
           const lat = parseNumber(row[latColumn]);
           const lon = parseNumber(row[lonColumn]);
-          const value = valueColumn ? parseNumber(row[valueColumn]) : NaN;
-
-          let place = "";
-
-          if (placeColumn) {
-            place = String(row[placeColumn] ?? "").trim();
-          }
+          const place = placeColumn ? String(row[placeColumn] ?? "").trim() : "";
 
           return {
-            row,
             lat,
             lon,
-            value,
             place
           };
         })
@@ -1127,16 +1323,12 @@
         );
 
       if (!points.length) {
-        mapNoteEl.textContent =
-          `Non ho trovato coordinate valide per l'anno ${year}.`;
+        mapNoteEl.textContent = `Non ho trovato coordinate valide per l'anno ${year}.`;
         createEmptyMap("Non ho trovato coordinate valide.");
         return;
       }
 
-      mapNoteEl.textContent =
-        placeColumn
-          ? `Mappa costruita usando la colonna luogo "${placeColumn}".`
-          : `Mappa costruita, ma non ho trovato la colonna del nome luogo.`;
+      mapNoteEl.textContent = `Centri abitati visualizzati per l'anno ${year}.`;
 
       if (mapInstance) {
         mapInstance.remove();
@@ -1151,38 +1343,31 @@
         attribution: "&copy; OpenStreetMap"
       }).addTo(mapInstance);
 
-      const values = points
-        .map(point => point.value)
-        .filter(value => Number.isFinite(value));
-
-      const minValue = values.length ? Math.min(...values) : NaN;
-      const maxValue = values.length ? Math.max(...values) : NaN;
-
       const bounds = [];
 
       for (const point of points) {
-        const markerRadius = getRadius(point.value, minValue, maxValue);
-
         const marker = L.circleMarker([point.lat, point.lon], {
-          radius: markerRadius,
-          color: "#8b1e3f",
+          radius: 9,
+
+          /*
+           * Colori dei punti sulla mappa.
+           * Si modificano nella sezione CONFIG.
+           */
+          color: CONFIG.mapPointBorderColor,
           weight: 2,
-          fillColor: "#d79a2b",
+          fillColor: CONFIG.mapPointFillColor,
           fillOpacity: 0.72
         }).addTo(mapInstance);
 
         const popupTitle = point.place || "Centro abitato non indicato";
 
-        const popupValue =
-          valueColumn && Number.isFinite(point.value)
-            ? `<br><strong>${escapeHtml(valueColumn)}:</strong> ${new Intl.NumberFormat("it-IT").format(point.value)}`
-            : "";
-
-        const popupYear =
-          year ? `<br><strong>Anno:</strong> ${escapeHtml(year)}` : "";
-
+        /*
+         * Popup della mappa.
+         * Qui ho lasciato solo nome del centro abitato e anno,
+         * senza latitudine e longitudine.
+         */
         marker.bindPopup(
-          `<strong>${escapeHtml(popupTitle)}</strong>${popupYear}${popupValue}<br><small>${point.lat}, ${point.lon}</small>`
+          `<strong>${escapeHtml(popupTitle)}</strong><br><strong>Anno:</strong> ${escapeHtml(year)}`
         );
 
         bounds.push([point.lat, point.lon]);
@@ -1199,6 +1384,33 @@
       setTimeout(() => {
         mapInstance.invalidateSize();
       }, 250);
+    }
+
+    function makeYearButtons() {
+      yearButtonsEl.innerHTML = "";
+
+      for (const year of years) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "year-button";
+        button.textContent = year;
+        button.dataset.year = year;
+
+        button.addEventListener("click", () => {
+          stopAutoplay();
+          setYear(year);
+        });
+
+        yearButtonsEl.appendChild(button);
+      }
+    }
+
+    function updateYearButtons() {
+      const buttons = yearButtonsEl.querySelectorAll(".year-button");
+
+      buttons.forEach(button => {
+        button.classList.toggle("is-active", button.dataset.year === currentYear);
+      });
     }
 
     function setYear(year) {
@@ -1242,55 +1454,6 @@
       }
     }
 
-    function makeYearButtons() {
-      yearButtonsEl.innerHTML = "";
-
-      for (const year of years) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "year-button";
-        button.textContent = year;
-        button.dataset.year = year;
-
-        button.addEventListener("click", () => {
-          stopAutoplay();
-          setYear(year);
-        });
-
-        yearButtonsEl.appendChild(button);
-      }
-    }
-
-    function updateYearButtons() {
-      const buttons = yearButtonsEl.querySelectorAll(".year-button");
-
-      buttons.forEach(button => {
-        button.classList.toggle("is-active", button.dataset.year === currentYear);
-      });
-    }
-
-    function writeDebug() {
-      if (!CONFIG.debug) {
-        debugEl.classList.remove("is-visible");
-        return;
-      }
-
-      debugEl.classList.add("is-visible");
-
-      const mapColumns = getColumns(allMapRows);
-      const resolvedPlaceColumn = resolveConfiguredColumn(mapColumns, CONFIG.placeNameColumn);
-
-      debugEl.textContent =
-        "Colonne rilevate nel foglio istogramma:\n" +
-        getColumns(allBarRows).join(" | ") +
-        "\n\nColonne rilevate nel foglio mappa:\n" +
-        mapColumns.join(" | ") +
-        "\n\nColonna luogo richiesta:\n" +
-        CONFIG.placeNameColumn +
-        "\n\nColonna luogo effettivamente usata:\n" +
-        (resolvedPlaceColumn || "NON TROVATA");
-    }
-
     async function initDashboard() {
       clearStatus();
 
@@ -1302,8 +1465,6 @@
 
         allBarRows = loaded[0];
         allMapRows = loaded[1];
-
-        writeDebug();
 
         const barYears = extractYearsFromBar(allBarRows);
         const mapYears = extractYearsFromMap(allMapRows);
