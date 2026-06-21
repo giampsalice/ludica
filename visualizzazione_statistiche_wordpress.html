@@ -3,37 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>Visualizzazione statistiche Ludica</title>
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
-  <!-- PapaParse: lettura CSV -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Leaflet: mappa -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    :root {
-      --bg: #ffffff;
-      --panel: #ffffff;
-      --text: #1f2933;
-      --muted: #667085;
-      --border: #e5e7eb;
-      --accent: #8b1e3f;
-      --accent-soft: rgba(139, 30, 63, 0.12);
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      --radius: 18px;
-    }
-
     * {
       box-sizing: border-box;
     }
@@ -43,12 +21,8 @@
       margin: 0;
       padding: 0;
       background: transparent;
-      color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
+      color: #1f2933;
     }
 
     .dashboard {
@@ -67,12 +41,11 @@
       font-size: clamp(1.4rem, 2vw, 2rem);
       line-height: 1.2;
       font-weight: 750;
-      color: var(--text);
     }
 
     .dashboard-subtitle {
       margin: 0;
-      color: var(--muted);
+      color: #667085;
       font-size: 0.98rem;
       line-height: 1.45;
     }
@@ -81,13 +54,14 @@
       display: none;
       margin: 14px 0 18px;
       padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-left: 5px solid var(--accent);
+      border: 1px solid #e5e7eb;
+      border-left: 5px solid #8b1e3f;
       background: #fff;
       border-radius: 12px;
-      color: var(--muted);
+      color: #667085;
       font-size: 0.95rem;
       line-height: 1.45;
+      white-space: pre-line;
     }
 
     .status.is-visible {
@@ -102,17 +76,17 @@
     }
 
     .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       min-width: 0;
       overflow: hidden;
     }
 
     .card-header {
       padding: 16px 18px 8px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #e5e7eb;
     }
 
     .card-title {
@@ -124,7 +98,7 @@
 
     .card-note {
       margin: 5px 0 0;
-      color: var(--muted);
+      color: #667085;
       font-size: 0.88rem;
       line-height: 1.35;
     }
@@ -148,18 +122,23 @@
       z-index: 1;
     }
 
-    .empty {
-      padding: 20px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.45;
-    }
-
     .source-note {
       margin-top: 14px;
-      color: var(--muted);
+      color: #667085;
       font-size: 0.82rem;
       line-height: 1.4;
+    }
+
+    .debug {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      color: #667085;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
     }
 
     .leaflet-popup-content {
@@ -206,13 +185,13 @@
     <header class="dashboard-header">
       <h1 class="dashboard-title">Visualizzazione statistiche</h1>
       <p class="dashboard-subtitle">
-        Dati aggiornati automaticamente dal file Google Sheets pubblicato.
+        Dati aggiornati automaticamente da Google Sheets.
       </p>
     </header>
 
     <div id="status" class="status"></div>
 
-    <section class="grid" aria-label="Dashboard dati e luoghi">
+    <section class="grid">
       <article class="card">
         <div class="card-header">
           <h2 class="card-title">Dati quantitativi</h2>
@@ -233,40 +212,33 @@
     </section>
 
     <p class="source-note">
-      La visualizzazione legge i dati da CSV pubblicati da Google Sheets. Se il foglio viene aggiornato,
-      la dashboard si aggiorna al successivo caricamento della pagina.
+      La visualizzazione legge i dati da CSV pubblicati da Google Sheets.
+      Quando il foglio viene aggiornato, la dashboard si aggiorna al successivo caricamento della pagina.
     </p>
+
+    <div id="debug" class="debug"></div>
   </main>
 
   <script>
-    /********************************************************************
-     * CONFIGURAZIONE
+    /**************************************************************
+     * URL DEI DUE FOGLI GOOGLE SHEETS
+     **************************************************************/
+
+    const BAR_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=535874584&single=true&output=csv";
+
+    const MAP_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?gid=1863177981&single=true&output=csv";
+
+    /**************************************************************
+     * CONFIGURAZIONE COLONNE
      *
-     * 1. BAR_CSV_URL = foglio con i dati quantitativi.
-     * 2. MAP_CSV_URL = foglio con i luoghi.
+     * Per ora lascio null, così il codice sceglie automaticamente:
+     * - per il grafico: prima colonna testuale + prima colonna numerica;
+     * - per la mappa: colonne con nomi simili a latitudine/longitudine.
      *
-     * Se per ora hai un solo CSV, puoi lasciare MAP_CSV_URL uguale a
-     * BAR_CSV_URL. Però, per una mappa corretta, il CSV deve contenere
-     * colonne di latitudine e longitudine.
-     ********************************************************************/
-
-    const BAR_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?output=csv";
-
-    const MAP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnbHCs4ZDmMDJYRyP5vbQ4iY97UKBfe-_THwDbICkgeHy7plN96vXHZXzi1mvWsW5dtZBY1nfoN0sI/pub?output=csv";
-
-    /*
-      Se conosci i nomi esatti delle colonne, scrivili qui.
-
-      Esempio:
-      barLabelColumn: "Categoria",
-      barValueColumn: "Valore",
-      placeNameColumn: "Comune",
-      latitudeColumn: "Latitudine",
-      longitudeColumn: "Longitudine",
-      markerValueColumn: "Valore",
-
-      Se lasci null, il codice prova a riconoscerle automaticamente.
-    */
+     * Se vuoi forzare i nomi, scrivili tra virgolette.
+     **************************************************************/
 
     const CONFIG = {
       barLabelColumn: null,
@@ -277,12 +249,9 @@
       longitudeColumn: null,
       markerValueColumn: null,
 
-      maxBars: 20
+      maxBars: 20,
+      debug: true
     };
-
-    /********************************************************************
-     * NON MODIFICARE SOTTO QUESTA RIGA, salvo esigenze specifiche.
-     ********************************************************************/
 
     let chartInstance = null;
     let mapInstance = null;
@@ -290,6 +259,7 @@
     const statusEl = document.getElementById("status");
     const barNoteEl = document.getElementById("barNote");
     const mapNoteEl = document.getElementById("mapNote");
+    const debugEl = document.getElementById("debug");
 
     function showStatus(message) {
       statusEl.textContent = message;
@@ -361,7 +331,7 @@
       });
 
       if (!response.ok) {
-        throw new Error(`Errore nel caricamento CSV: ${response.status}`);
+        throw new Error(`Errore caricamento CSV: ${response.status}`);
       }
 
       const text = await response.text();
@@ -371,12 +341,43 @@
           header: true,
           skipEmptyLines: true,
           dynamicTyping: false,
-          complete: (results) => {
-            const rows = results.data.filter(row =>
+          delimitersToGuess: [",", ";", "\t", "|"],
+          complete: function(results) {
+            let rows = results.data.filter(row =>
               Object.values(row).some(value => String(value ?? "").trim() !== "")
             );
 
-            resolve(rows);
+            /*
+              Se PapaParse non trova intestazioni sensate, rilegge il CSV senza header
+              e crea nomi colonna automatici: Colonna 1, Colonna 2, ecc.
+            */
+            const fields = results.meta && results.meta.fields ? results.meta.fields : [];
+            const badHeader =
+              !fields.length ||
+              fields.every(field => String(field).startsWith("__parsed_extra"));
+
+            if (badHeader) {
+              Papa.parse(text, {
+                header: false,
+                skipEmptyLines: true,
+                delimitersToGuess: [",", ";", "\t", "|"],
+                complete: function(rawResults) {
+                  const rawRows = rawResults.data;
+                  const maxCols = Math.max(...rawRows.map(row => row.length));
+                  const generatedRows = rawRows.map(row => {
+                    const obj = {};
+                    for (let i = 0; i < maxCols; i++) {
+                      obj[`Colonna ${i + 1}`] = row[i] ?? "";
+                    }
+                    return obj;
+                  });
+                  resolve(generatedRows);
+                },
+                error: reject
+              });
+            } else {
+              resolve(rows);
+            }
           },
           error: reject
         });
@@ -385,7 +386,7 @@
 
     function getColumns(rows) {
       if (!rows || !rows.length) return [];
-      return Object.keys(rows[0]).filter(column => column && column.trim());
+      return Object.keys(rows[0]).filter(column => String(column).trim() !== "");
     }
 
     function findColumnByCandidates(columns, candidates) {
@@ -400,6 +401,7 @@
         const exact = normalizedColumns.find(
           column => column.normalized === normalizedCandidate
         );
+
         if (exact) return exact.original;
       }
 
@@ -411,10 +413,33 @@
             column.normalized.includes(normalizedCandidate) ||
             normalizedCandidate.includes(column.normalized)
         );
+
         if (partial) return partial.original;
       }
 
       return null;
+    }
+
+    function numericScore(rows, column) {
+      let count = 0;
+
+      for (const row of rows) {
+        const value = parseNumber(row[column]);
+        if (Number.isFinite(value)) count++;
+      }
+
+      return count;
+    }
+
+    function textScore(rows, column) {
+      let count = 0;
+
+      for (const row of rows) {
+        const value = String(row[column] ?? "").trim();
+        if (value && !Number.isFinite(parseNumber(value))) count++;
+      }
+
+      return count;
     }
 
     function findBestNumericColumn(rows, columns, excludedColumns = []) {
@@ -428,27 +453,14 @@
 
         const normalized = normalizeText(column);
 
-        if (
-          normalized === "lat" ||
-          normalized === "latitude" ||
-          normalized === "latitudine" ||
-          normalized === "lon" ||
-          normalized === "lng" ||
-          normalized === "longitude" ||
-          normalized === "longitudine"
-        ) {
+        if (["lat", "latitude", "latitudine", "lon", "lng", "longitude", "longitudine"].includes(normalized)) {
           continue;
         }
 
-        let numericCount = 0;
+        const score = numericScore(rows, column);
 
-        for (const row of rows) {
-          const num = parseNumber(row[column]);
-          if (Number.isFinite(num)) numericCount++;
-        }
-
-        if (numericCount > bestScore) {
-          bestScore = numericCount;
+        if (score > bestScore) {
+          bestScore = score;
           bestColumn = column;
         }
       }
@@ -457,9 +469,8 @@
     }
 
     function findBestLabelColumn(rows, columns, numericColumn) {
-      const candidateColumn = findColumnByCandidates(columns, [
+      const preferred = findColumnByCandidates(columns, [
         "categoria",
-        "categoria dato",
         "indicatore",
         "voce",
         "tipo",
@@ -477,22 +488,30 @@
         "località"
       ]);
 
-      if (candidateColumn && candidateColumn !== numericColumn) {
-        return candidateColumn;
+      if (preferred && preferred !== numericColumn) {
+        return preferred;
       }
+
+      let bestColumn = null;
+      let bestScore = -1;
 
       for (const column of columns) {
         if (column === numericColumn) continue;
 
-        const nonEmptyTextCount = rows.filter(row => {
-          const value = String(row[column] ?? "").trim();
-          return value && !Number.isFinite(parseNumber(value));
-        }).length;
+        const score = textScore(rows, column);
 
-        if (nonEmptyTextCount > 0) return column;
+        if (score > bestScore) {
+          bestScore = score;
+          bestColumn = column;
+        }
       }
 
-      return null;
+      if (bestScore > 0) return bestColumn;
+
+      /*
+        Fallback estremo: usa la prima colonna diversa da quella numerica.
+      */
+      return columns.find(column => column !== numericColumn) || null;
     }
 
     function aggregateForBarChart(rows, labelColumn, valueColumn, maxBars) {
@@ -532,7 +551,7 @@
 
       if (!labelColumn || !valueColumn) {
         barNoteEl.textContent =
-          "Non riesco a identificare automaticamente le colonne per il grafico. Imposta barLabelColumn e barValueColumn nel codice.";
+          "Non riesco a identificare le colonne per il grafico.";
         return;
       }
 
@@ -576,14 +595,6 @@
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: "y",
-          layout: {
-            padding: {
-              top: 6,
-              right: 12,
-              bottom: 6,
-              left: 6
-            }
-          },
           plugins: {
             legend: {
               display: false
@@ -627,12 +638,36 @@
       return 7 + normalized * 18;
     }
 
+    function createEmptyMap(message) {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+
+      mapInstance = L.map("map", {
+        scrollWheelZoom: false
+      }).setView([39.2238, 9.1217], 6);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(mapInstance);
+
+      L.popup()
+        .setLatLng([39.2238, 9.1217])
+        .setContent(message || "Coordinate non disponibili.")
+        .openOn(mapInstance);
+
+      setTimeout(() => {
+        mapInstance.invalidateSize();
+      }, 250);
+    }
+
     function renderMap(rows) {
       const columns = getColumns(rows);
 
       if (!rows.length || !columns.length) {
         mapNoteEl.textContent = "Nessun dato disponibile per la mappa.";
-        createEmptyMap();
+        createEmptyMap("Nessun dato disponibile per la mappa.");
         return;
       }
 
@@ -676,8 +711,8 @@
 
       if (!latColumn || !lonColumn) {
         mapNoteEl.textContent =
-          "La mappa richiede colonne di latitudine e longitudine. Imposta latitudeColumn e longitudeColumn nel codice.";
-        createEmptyMap();
+          "La mappa richiede colonne di latitudine e longitudine.";
+        createEmptyMap("La mappa richiede colonne di latitudine e longitudine.");
         return;
       }
 
@@ -707,7 +742,7 @@
       if (!points.length) {
         mapNoteEl.textContent =
           `Non ho trovato coordinate valide nelle colonne "${latColumn}" e "${lonColumn}".`;
-        createEmptyMap();
+        createEmptyMap("Non ho trovato coordinate valide.");
         return;
       }
 
@@ -773,30 +808,20 @@
       }, 250);
     }
 
-    function createEmptyMap() {
-      if (mapInstance) {
-        mapInstance.remove();
+    function writeDebug(barRows, mapRows) {
+      if (!CONFIG.debug) {
+        debugEl.style.display = "none";
+        return;
       }
 
-      mapInstance = L.map("map", {
-        scrollWheelZoom: false
-      }).setView([39.2238, 9.1217], 6);
+      const barColumns = getColumns(barRows);
+      const mapColumns = getColumns(mapRows);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
-      }).addTo(mapInstance);
-
-      L.popup()
-        .setLatLng([39.2238, 9.1217])
-        .setContent(
-          "Aggiungi colonne di latitudine e longitudine al foglio dei luoghi."
-        )
-        .openOn(mapInstance);
-
-      setTimeout(() => {
-        mapInstance.invalidateSize();
-      }, 250);
+      debugEl.textContent =
+        "Colonne rilevate nel foglio istogramma:\n" +
+        barColumns.join(" | ") +
+        "\n\nColonne rilevate nel foglio mappa:\n" +
+        mapColumns.join(" | ");
     }
 
     async function initDashboard() {
@@ -808,18 +833,19 @@
           loadCsv(MAP_CSV_URL)
         ]);
 
+        writeDebug(barRows, mapRows);
         renderBarChart(barRows);
         renderMap(mapRows);
       } catch (error) {
         console.error(error);
 
         showStatus(
-          "Errore nel caricamento dei dati. Controlla che il CSV Google Sheets sia pubblicato e accessibile."
+          "Errore nel caricamento dei dati. Controlla che i due CSV Google Sheets siano pubblicati e accessibili."
         );
 
         barNoteEl.textContent = "Errore nel caricamento dati.";
         mapNoteEl.textContent = "Errore nel caricamento dati.";
-        createEmptyMap();
+        createEmptyMap("Errore nel caricamento dati.");
       }
     }
 
