@@ -1,0 +1,333 @@
+<!-- ============================================================
+     GALLERIA "LUDiCa 26" — blocco HTML per WordPress
+     Incolla tutto questo codice in un blocco "HTML personalizzato"
+     (Gutenberg: blocco "HTML personalizzato" / Elementor: widget HTML).
+     Non servono plugin o librerie esterne.
+
+     IMPORTANTE: modifica SEMPRE questo codice nella vista "codice/testo"
+     del blocco, mai nell'editor visuale — altrimenti WordPress
+     riscrive l'HTML e rompe i tag (com'è successo alla card Iscrizioni).
+     ============================================================ -->
+<div class="ls-wrap" id="ls-scuola">
+
+  <style>
+    #ls-scuola{
+      --ls-ink:#1c2b45;
+      --ls-ink-soft:#4b5a74;
+      --ls-paper:transparent;
+      --ls-paper-deep:#f1ede2;
+      --ls-line:#dcd6c6;
+      --ls-gold:#b9832f;
+      --ls-red:#c1443b;
+      --ls-green:#4c7a45;
+      --ls-blue:#3a6ea5;
+      --ls-orange:#c98a2c;
+      font-family: 'Iowan Old Style','Palatino Linotype',Georgia,serif;
+      color:var(--ls-ink);
+      background:transparent;
+      max-width:100%;
+      margin:0;
+      padding:32px 0 48px;
+      box-sizing:border-box;
+    }
+    #ls-scuola *{box-sizing:border-box;}
+    #ls-scuola .ls-eyebrow{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-size:13px;
+      letter-spacing:.04em;
+      color:var(--ls-ink-soft);
+      margin:0 0 6px;
+    }
+    #ls-scuola h2.ls-title{
+      font-size:clamp(24px,4vw,34px);
+      line-height:1.15;
+      font-weight:600;
+      margin:0 0 36px;
+      white-space:normal;
+    }
+
+    /* ---------- ACCORDION ---------- */
+    #ls-scuola .ls-accordion{
+      border-top:1px solid var(--ls-line);
+    }
+    #ls-scuola details{
+      border-bottom:1px solid var(--ls-line);
+    }
+    #ls-scuola summary{
+      list-style:none;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:22px 4px;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-weight:600;
+      font-size:16px;
+      color:var(--ls-ink);
+      transition:color .15s ease;
+    }
+    #ls-scuola summary::-webkit-details-marker{display:none;}
+    #ls-scuola summary:hover{color:var(--ls-blue);}
+    #ls-scuola summary:focus-visible{outline:2px solid var(--ls-blue); outline-offset:4px;}
+    #ls-scuola .ls-chevron{
+      flex:0 0 auto;
+      width:22px;height:22px;
+      transition:transform .25s ease;
+      color:var(--ls-blue);
+    }
+    #ls-scuola details[open] .ls-chevron{transform:rotate(180deg);}
+    #ls-scuola .ls-panel{
+      overflow:hidden;
+      max-height:0;
+      transition:max-height .28s ease;
+    }
+    #ls-scuola details[open] .ls-panel{max-height:900px;}
+    #ls-scuola .ls-panel-inner{
+      padding:0 4px 26px;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-size:15px;
+      line-height:1.65;
+      color:var(--ls-ink-soft);
+      max-width:62ch;
+    }
+    #ls-scuola .ls-panel-inner p{margin:0 0 12px;}
+    #ls-scuola .ls-panel-inner p:last-child{margin-bottom:0;}
+
+    /* ---------- MAPPA (Dove si tiene) ---------- */
+    #ls-scuola .ls-map{
+      width:100%;
+      aspect-ratio:16/9;
+      margin-top:16px;
+      border:1px solid var(--ls-line);
+      background:#f1ede2;
+      overflow:hidden;
+    }
+    #ls-scuola .ls-map iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+
+    /* ---------- QUICK ACCESS CARDS ---------- */
+    #ls-scuola .ls-quick{
+      margin-top:56px;
+    }
+    #ls-scuola .ls-quick-label{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-size:13px;
+      color:var(--ls-ink-soft);
+      margin:0 0 18px;
+      padding-top:28px;
+      border-top:1px solid var(--ls-line);
+    }
+    #ls-scuola .ls-grid{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:2px;
+      background:var(--ls-line);
+      border:1px solid var(--ls-line);
+    }
+    #ls-scuola .ls-card{
+      background:var(--ls-paper);
+      padding:26px 14px 22px;
+      text-align:center;
+      text-decoration:none;
+      color:inherit;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      transition:background .18s ease;
+    }
+    #ls-scuola .ls-card:hover{background:#f4f2ec;}
+    #ls-scuola .ls-card:focus-visible{outline:2px solid var(--ls-blue); outline-offset:-2px;}
+    #ls-scuola .ls-icon{width:38px;height:38px;}
+    #ls-scuola .ls-card-name{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-weight:600;
+      font-size:14px;
+      color:var(--ls-ink);
+    }
+    #ls-scuola .ls-status{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-size:11.5px;
+      color:var(--ls-red);
+    }
+    #ls-scuola .ls-status.ls-live{color:var(--ls-green);}
+
+    @media (max-width:900px){
+      #ls-scuola .ls-grid{grid-template-columns:repeat(3,1fr);}
+    }
+    @media (max-width:480px){
+      #ls-scuola{padding:40px 18px 48px;}
+      #ls-scuola .ls-grid{grid-template-columns:repeat(2,1fr);}
+      #ls-scuola summary{font-size:15px;}
+    }
+  </style>
+
+  <p class="ls-eyebrow">Guida al LUDiCa 26</p>
+  <h2 class="ls-title">Tutto quello che devi sapere è qui</h2>
+
+  <div class="ls-accordion">
+
+    <details open>
+      <summary>Il tema della scuola
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>Come si studia la storia di una Comunità di villaggio? È questa la domanda che affronteremo al LUDiCa 26 con lezioni metodologiche, approfondimenti seminariali e il contatto diretto col territorio e la comunità.</p>
+      </div></div>
+    </details>
+
+    <details>
+      <summary>Quando si tiene
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>01-11 dic » Bottega digitale</p>
+        <p>14-20 dic » Campo invernale</p>
+      </div></div>
+    </details>
+
+    <details>
+      <summary>Dove si tiene
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>Chiaramonti (Sardegna)</p>
+        <!-- MAPPA: per spostare il punto, cambia SOLO data-lat e data-lon.
+             data-zoom regola quanto "vicino" inquadrare (valore più basso = più zoom). -->
+        <div class="ls-map" data-lat="40.750" data-lon="8.817" data-zoom="0.02"></div>
+      </div></div>
+    </details>
+
+    <details>
+      <summary>Come funziona
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>La scuola del LUDiCa è articolata in due momenti:</p>
+        <p>«Bottega digitale». I partecipanti apprendono l'utilizzo di applicativi strumenti come Zotero, OmeKa-S e discutono con i docenti formatori di metodi per la ricerca di ambito umanistico: non solo l'approccio alla bibliografia e alle fonti d'archivio, ma anche alla storia orale e ad altre forme di organizzazione, ordinamento, rappresentazione dei dati, ad esempio il GIS.</p>
+        <p>«Campo estivo». Partecipanti e formatori si trasferiscono nella Comunità oggetto della dell'esperienza didattica e formativa che collabora con i partecipanti alla creazione di una banca dati partecipata di oggetti digitali, documenti d'archivio, ma non solo, gli archivi statali, anche quelli locali, comunale, parrocchiale, gli archivi delle famiglie, fotografie storiche e attraverso anche la raccolta di memorie e testimonianze, realizzata con una serie di interviste sul campo.</p>
+      </div></div>
+    </details>
+
+    <details>
+      <summary>La rete di collaborazioni
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>Le scuole del LUDiCa sono promosse da AIPH e organizzate col supporto amministrativo del Dipartimento di Lettere, Lingue e Beni culturali dell'Università di Cagliari e quello tecnologico del DH UNICA – Centro interdipartimentale per l'Umanistica Digitale.</p>
+        <p>L'edizione 2026 è sostenuta dal Comune di Chiaramonti e co-organizzata con l'Associazione cultura Contos.</p>
+        <p>Sul piano scientifico la Scuola si avvale, oltre che del supporto di AIPH, della collaborazione di AISO (Associazione italiana di Storia Orale) e di AIDUSA (Associazione Italiana docenti universitari di Scienze archivistiche).</p>
+      </div></div>
+    </details>
+
+    <details>
+      <summary>La restituzione pubblica
+        <svg class="ls-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="ls-panel"><div class="ls-panel-inner">
+        <p>Gli esiti della scuola verranno presentati nella serata di restituzione pubblica che chiude il campo residenziale.</p>
+        <p>Sono protagonisti dell'appuntamento le partecipanti e i partecipanti alla scuola e chi, a vario titolo, ha contribuito alla realizzazione.</p>
+        <p>Nel corso della serata viene pubblicato il portale realizzato dalla scuola.</p>
+      </div></div>
+    </details>
+
+  </div>
+
+  <div class="ls-quick">
+    <p class="ls-quick-label">Aree della scuola</p>
+    <div class="ls-grid">
+
+      <!-- ISCRIZIONI -->
+      <a class="ls-card" href="https://ludica.dh.unica.it/?p=7844">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M18 6v10M30 6v10" stroke="#c1443b" stroke-width="3" stroke-linecap="round"/>
+          <rect x="14" y="16" width="20" height="12" rx="3" stroke="#c1443b" stroke-width="3"/>
+          <path d="M24 28v8" stroke="#c1443b" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="24" cy="40" r="2.4" fill="#c1443b"/>
+        </svg>
+        <span class="ls-card-name">Iscrizioni</span>
+      </a>
+
+      <!-- STUDENTI -->
+      <a class="ls-card" href="#studenti">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M39 24a15 15 0 1 1-6-12l-9 8 12 1z" fill="#4c7a45"/>
+          <circle cx="35" cy="18" r="2.1" fill="#faf8f3"/>
+        </svg>
+        <span class="ls-card-name">Studenti</span>
+        <span class="ls-status">in aggiornamento</span>
+      </a>
+
+      <!-- DOCENTI E SEMINARI -->
+      <a class="ls-card" href="#docenti">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M9 20a21 21 0 0 1 30 0" stroke="#c98a2c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15 27a13 13 0 0 1 18 0" stroke="#c98a2c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M21 34a6 6 0 0 1 6 0" stroke="#c98a2c" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="24" cy="40" r="2.4" fill="#c98a2c"/>
+        </svg>
+        <span class="ls-card-name">Docenti e Seminari</span>
+        <span class="ls-status">in aggiornamento</span>
+      </a>
+
+      <!-- ESITI -->
+      <a class="ls-card" href="#esiti">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <path d="M14 20v8h6l9 7V13l-9 7h-6z" fill="#c98a2c"/>
+          <path d="M32 19a7 7 0 0 1 0 10" stroke="#c98a2c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M36 15a13 13 0 0 1 0 18" stroke="#c98a2c" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span class="ls-card-name">Esiti</span>
+        <span class="ls-status">in aggiornamento</span>
+      </a>
+
+      <!-- STAMPA E MEDIA -->
+      <a class="ls-card" href="#stampa">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="10" y="12" width="28" height="24" rx="2" stroke="#3a6ea5" stroke-width="3"/>
+          <path d="M16 20h16M16 26h16M16 32h10" stroke="#3a6ea5" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span class="ls-card-name">Stampa e media</span>
+        <span class="ls-status ls-live">disponibile</span>
+      </a>
+
+      <!-- GALLERIA -->
+      <a class="ls-card" href="#galleria">
+        <svg class="ls-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="12" width="26" height="20" rx="2" stroke="#4c7a45" stroke-width="3"/>
+          <circle cx="15" cy="19" r="2.4" fill="#4c7a45"/>
+          <path d="M8 28l7-6 6 5 6-5 7 6" stroke="#4c7a45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="17" y="20" width="26" height="20" rx="2" fill="#faf8f3" stroke="#4c7a45" stroke-width="3"/>
+        </svg>
+        <span class="ls-card-name">Galleria</span>
+        <span class="ls-status">in aggiornamento</span>
+      </a>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var maps = document.querySelectorAll('#ls-scuola .ls-map');
+  maps.forEach(function(el){
+    var lat = parseFloat(el.getAttribute('data-lat'));
+    var lon = parseFloat(el.getAttribute('data-lon'));
+    var d   = parseFloat(el.getAttribute('data-zoom')) || 0.02;
+    if (isNaN(lat) || isNaN(lon)) return;
+    var bbox = (lon-d)+','+(lat-d)+','+(lon+d)+','+(lat+d);
+    var src = 'https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+lat+','+lon;
+    var iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.loading = 'lazy';
+    iframe.setAttribute('title','Mappa del luogo');
+    el.appendChild(iframe);
+  });
+})();
+</script>
