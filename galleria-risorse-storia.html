@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galleria risorse</title>
+
+<!-- ============================================================================
+     TEMPLATE "GALLERIA DA GOOGLE SHEETS"
+     ============================================================================
+     Questo file è pensato per essere caricato su GitHub (e pubblicato con
+     GitHub Pages), e poi incorporato in WordPress con un semplice <iframe>.
+     In questo modo non modifichi mai più codice HTML dentro WordPress:
+       - per cambiare i CONTENUTI  → modifichi solo il foglio Google
+       - per cambiare l'ASPETTO    → modifichi solo la sezione CONFIGURAZIONE
+         qui sotto (colori, font, titolo) e la ripubblichi su GitHub
+       - per RIUTILIZZARE il template su un altro progetto → copi questo
+         file in un nuovo repository e cambi solo la CONFIGURAZIONE
+
+     COME PUBBLICARLO SU GITHUB PAGES (una volta sola):
+       1. Crea un account su github.com (gratuito) se non lo hai già.
+       2. Crea un nuovo repository (es. "galleria-risorse").
+       3. Carica questo file rinominandolo esattamente "index.html".
+       4. Vai su: Settings → Pages → in "Branch" scegli "main" e cartella "/ (root)" → Save.
+       5. Dopo 1-2 minuti la pagina sarà online su:
+          https://TUO-NOME-UTENTE.github.io/NOME-REPOSITORY/
+       6. Per aggiornare l'aspetto in futuro: modifichi questo file su GitHub
+          (matita "Edit" in alto a destra del file) e salvi (Commit) — la
+          pagina online si aggiorna da sola in pochi secondi.
+
+     COME INCORPORARLO IN WORDPRESS (una volta sola):
+       Incolla in un blocco "HTML personalizzato" SOLO questa riga,
+       sostituendo l'indirizzo con quello della tua pagina GitHub Pages:
+
+       <iframe src="https://TUO-NOME-UTENTE.github.io/NOME-REPOSITORY/"
+               style="width:100%; border:0; display:block;"
+               height="900" loading="lazy" title="Galleria risorse"></iframe>
+
+       Regola il numero "900" (altezza in pixel) finché il contenuto non
+       viene tagliato: prova il valore e aumentalo se serve più spazio.
+     ============================================================================ -->
+
+<style>
+  /* ================================================================
+     CONFIGURAZIONE ASPETTO — è l'UNICA parte di stile che di solito
+     serve modificare per adattare il template a un nuovo progetto.
+     ================================================================ */
+  :root{
+    /* --- COLORI --- */
+    --gal-ink:        #1c2b45;  /* colore principale del testo (titoli, nomi) */
+    --gal-ink-soft:    #4b5a74; /* colore testo secondario (sottotitoli, stato) */
+    --gal-line:        #dcd6c6; /* colore dei bordi e delle linee sottili */
+    --gal-line-soft:   #eae6da; /* sfondo dei riquadri immagine prima del caricamento */
+    --gal-accent:      #b9832f; /* colore di accento: etichette categoria, dettagli */
+    --gal-chip-bg:     #f4f2ec; /* sfondo dei pulsanti filtro non selezionati */
+    --gal-active-bg:   #1c2b45; /* sfondo del pulsante filtro selezionato ("Tutti", ecc.) */
+    --gal-active-text: #ffffff; /* colore testo del pulsante filtro selezionato */
+    --gal-card-bg:     #ffffff; /* sfondo delle card */
+
+    /* --- FONT ---
+       Il font del titolo è pensato per un look "editoriale" (serif).
+       Se preferisci un font diverso, aggiungi qui il nome del font
+       (deve essere già disponibile nel browser, o importato da Google
+       Fonts scommentando il tag <link> qui sotto). */
+    --gal-font-title: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --gal-font-body:  -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* --- LAYOUT --- */
+    --gal-columns-desktop: 3;   /* card per riga su schermi larghi */
+    --gal-columns-tablet:  2;   /* card per riga su tablet */
+    --gal-columns-mobile:  1;   /* card per riga su smartphone */
+    --gal-gap: 22px;            /* spazio tra le card */
+    --gal-radius: 0px;          /* angoli delle card e dei pulsanti: 0 = squadrato, 12px = arrotondato */
+  }
+
+  /* Per usare un font di Google Fonts al posto di quelli di sistema:
+     1) scommenta la riga qui sotto (rimuovi <!-- e -->)
+     2) sostituisci "Fraunces" con il nome del font scelto da fonts.google.com
+     3) aggiorna --gal-font-title sopra con lo stesso nome
+  -->
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&display=swap" rel="stylesheet"> -->
+
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:transparent;}
+  body{font-family:var(--gal-font-body); color:var(--gal-ink);}
+
+  .gal-wrap{max-width:1100px; margin:0 auto; padding:24px 20px 48px;}
+
+  .gal-eyebrow{font-size:13px; letter-spacing:.04em; color:var(--gal-ink-soft); margin:0 0 6px;}
+  .gal-title{
+    font-family:var(--gal-font-title);
+    font-size:clamp(24px,4vw,32px);
+    line-height:1.2;
+    font-weight:600;
+    margin:0 0 22px;
+  }
+
+  /* ---------- FILTRI ---------- */
+  .gal-filters{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px;}
+  .gal-chip{
+    font-family:var(--gal-font-body);
+    font-size:13px;
+    font-weight:600;
+    color:var(--gal-ink-soft);
+    background:var(--gal-chip-bg);
+    border:1px solid var(--gal-line);
+    border-radius:999px;
+    padding:7px 16px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .gal-chip:hover{border-color:var(--gal-accent); color:var(--gal-ink);}
+  .gal-chip.gal-active{background:var(--gal-active-bg); border-color:var(--gal-active-bg); color:var(--gal-active-text);}
+
+  /* ---------- GRIGLIA CARD ---------- */
+  .gal-grid{
+    display:grid;
+    grid-template-columns:repeat(var(--gal-columns-desktop), 1fr);
+    gap:var(--gal-gap);
+  }
+  .gal-card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    border:1px solid var(--gal-line);
+    background:var(--gal-card-bg);
+    border-radius:var(--gal-radius);
+    overflow:hidden;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .gal-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--gal-accent);
+    box-shadow:0 10px 24px rgba(28,43,69,.10);
+  }
+  .gal-thumb{width:100%; aspect-ratio:4/3; background:var(--gal-line-soft); overflow:hidden;}
+  .gal-thumb img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s ease;}
+  .gal-card:hover .gal-thumb img{transform:scale(1.04);}
+  .gal-body{padding:16px 18px 20px;}
+  .gal-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color:var(--gal-accent);
+    margin-bottom:8px;
+  }
+  .gal-card-title{
+    font-family:var(--gal-font-title);
+    font-size:17px;
+    line-height:1.35;
+    font-weight:600;
+    color:var(--gal-ink);
+    display:block;
+  }
+
+  .gal-status{font-size:14px; color:var(--gal-ink-soft); padding:24px 0;}
+
+  @media (max-width:900px){
+    .gal-grid{grid-template-columns:repeat(var(--gal-columns-tablet), 1fr);}
+  }
+  @media (max-width:560px){
+    .gal-grid{grid-template-columns:repeat(var(--gal-columns-mobile), 1fr);}
+  }
+</style>
+</head>
+<body>
+
+  <div class="gal-wrap" id="gal-root">
+    <p class="gal-eyebrow" id="gal-eyebrow"></p>
+    <h2 class="gal-title" id="gal-title"></h2>
+    <div class="gal-filters" id="gal-filters" hidden></div>
+    <p class="gal-status" id="gal-status">Caricamento delle risorse…</p>
+    <div class="gal-grid" id="gal-grid"></div>
+  </div>
+
+<script>
+(function(){
+
+  /* ================================================================
+     CONFIGURAZIONE CONTENUTI — è l'UNICA parte di codice che di
+     solito serve modificare per riusare il template su un progetto
+     diverso. Non serve toccare nient'altro più sotto in questo file.
+     ================================================================ */
+  var CONFIG = {
+
+    // 1) INDIRIZZO DEL FOGLIO GOOGLE PUBBLICATO COME CSV
+    //    Come ottenerlo: nel foglio Google → File → Condividi →
+    //    Pubblica sul web → scegli il foglio → formato "CSV" → Pubblica.
+    //    Incolla qui il link che Google ti fornisce.
+    sheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQR78gM8NSLLBYkxMeafO0fI_NswuTMefDTYh1-jJRNi2chjuBvwTJRyFeqnxBohGpcGZg6q7Vpd60W/pub?output=csv",
+
+    // 2) TESTI IN ALTO ALLA PAGINA
+    eyebrow: "Storia digitale pubblica",
+    title:   "Esplora le risorse su Storia della Sardegna",
+
+    // 3) MAPPATURA DELLE COLONNE
+    //    Scrivi qui, a destra dei due punti, i nomi ESATTI delle colonne
+    //    così come compaiono nella prima riga del TUO foglio Google.
+    //    Se in un nuovo progetto il foglio ha intestazioni diverse
+    //    (es. "Nome" invece di "TITOLO"), cambia SOLO questi valori:
+    columns: {
+      title: "TITOLO",         // colonna con il titolo della risorsa
+      type:  "TIPO",           // colonna con la categoria (usata anche per i filtri)
+      url:   "URL",            // colonna con il link della card
+      image: "URL IMMAGINE"    // colonna con l'immagine di anteprima
+    },
+
+    // 4) TESTO SE UNA RIGA NON HA CATEGORIA
+    fallbackType: "Altro"
+  };
+  /* ============== FINE CONFIGURAZIONE — non serve modificare nulla
+     più sotto per il normale utilizzo del template. ============== */
+
+
+  document.getElementById('gal-eyebrow').textContent = CONFIG.eyebrow;
+  document.getElementById('gal-title').textContent = CONFIG.title;
+
+  var grid = document.getElementById('gal-grid');
+  var status = document.getElementById('gal-status');
+  var filtersBar = document.getElementById('gal-filters');
+
+  function norm(s){ return (s || '').trim().toUpperCase(); }
+
+  // ---- parser CSV (gestisce virgolette, virgole e a-capo dentro i campi) ----
+  function parseCSV(text){
+    var rows = [], row = [], field = '', inQuotes = false;
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else { field += c; }
+      } else {
+        if (c === '"'){ inQuotes = true; }
+        else if (c === ','){ row.push(field); field = ''; }
+        else if (c === '\r'){ /* ignora, gestito da \n */ }
+        else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length > 1 || (r[0] && r[0].trim() !== ''); });
+  }
+
+  function toObjects(rows){
+    var headers = rows[0].map(norm);
+    var titleKey = norm(CONFIG.columns.title);
+    return rows.slice(1).map(function(r){
+      var obj = {};
+      headers.forEach(function(h, i){ obj[h] = (r[i] || '').trim(); });
+      return obj;
+    }).filter(function(o){ return o[titleKey]; });
+  }
+
+  function get(obj, columnConfigValue){
+    return obj[norm(columnConfigValue)] || '';
+  }
+
+  function render(items){
+    if (!items.length){
+      status.textContent = 'Nessuna risorsa trovata nel foglio. Controlla i nomi delle colonne nella CONFIGURAZIONE del file.';
+      return;
+    }
+    status.hidden = true;
+
+    var types = [];
+    items.forEach(function(it){
+      var t = get(it, CONFIG.columns.type) || CONFIG.fallbackType;
+      if (types.indexOf(t) === -1) types.push(t);
+    });
+
+    if (types.length > 1){
+      filtersBar.hidden = false;
+
+      var allChip = document.createElement('button');
+      allChip.className = 'gal-chip gal-active';
+      allChip.type = 'button';
+      allChip.textContent = 'Tutti';
+      allChip.addEventListener('click', function(){ setFilter(null, allChip); });
+      filtersBar.appendChild(allChip);
+
+      types.forEach(function(t){
+        var chip = document.createElement('button');
+        chip.className = 'gal-chip';
+        chip.type = 'button';
+        chip.textContent = t;
+        chip.addEventListener('click', function(){ setFilter(t, chip); });
+        filtersBar.appendChild(chip);
+      });
+    }
+
+    function setFilter(type, activeEl){
+      Array.prototype.forEach.call(filtersBar.children, function(c){ c.classList.remove('gal-active'); });
+      activeEl.classList.add('gal-active');
+      Array.prototype.forEach.call(grid.children, function(card){
+        var show = !type || card.getAttribute('data-type') === type;
+        card.style.display = show ? '' : 'none';
+      });
+    }
+
+    items.forEach(function(it){
+      var titleText = get(it, CONFIG.columns.title);
+      var typeText  = get(it, CONFIG.columns.type) || CONFIG.fallbackType;
+      var urlText   = get(it, CONFIG.columns.url) || '#';
+      var imgText   = get(it, CONFIG.columns.image);
+
+      var card = document.createElement('a');
+      card.className = 'gal-card';
+      card.href = urlText;
+      card.target = '_blank';
+      card.rel = 'noopener';
+      card.setAttribute('data-type', typeText);
+
+      var thumb = document.createElement('div');
+      thumb.className = 'gal-thumb';
+      if (imgText){
+        var img = document.createElement('img');
+        img.src = imgText;
+        img.alt = titleText;
+        img.loading = 'lazy';
+        thumb.appendChild(img);
+      }
+      card.appendChild(thumb);
+
+      var body = document.createElement('div');
+      body.className = 'gal-body';
+
+      if (typeText){
+        var tag = document.createElement('span');
+        tag.className = 'gal-tag';
+        tag.textContent = typeText;
+        body.appendChild(tag);
+        body.appendChild(document.createElement('br'));
+      }
+
+      var titleEl = document.createElement('span');
+      titleEl.className = 'gal-card-title';
+      titleEl.textContent = titleText;
+      body.appendChild(titleEl);
+
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+  }
+
+  fetch(CONFIG.sheetUrl)
+    .then(function(res){
+      if (!res.ok) throw new Error('Risposta non valida (' + res.status + ')');
+      return res.text();
+    })
+    .then(function(text){
+      render(toObjects(parseCSV(text)));
+    })
+    .catch(function(err){
+      status.textContent = 'Non è stato possibile caricare le risorse dal foglio Google. Verifica che sia pubblicato come CSV (File → Condividi → Pubblica sul web) e che l\'indirizzo in CONFIGURAZIONE sia corretto.';
+      console.error('Errore caricamento galleria:', err);
+    });
+
+})();
+</script>
+
+</body>
+</html>
