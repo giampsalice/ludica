@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Galleria alimentata da Google Sheets">
-  <title>Galleria strumenti</title>
+  <title>Galleria studenti LUDiCa</title>
 
   <style>
     :root {
@@ -143,7 +143,7 @@
     <div class="search-area">
       <label class="search-label" for="gallery-search">Cerca nella galleria</label>
       <input id="gallery-search" class="search-input" type="search"
-        placeholder="Cerca per nome o descrizione…" autocomplete="off" disabled>
+        placeholder="Cerca per nome, cognome, attività o università…" autocomplete="off" disabled>
       <p id="search-status" class="search-status" aria-live="polite"></p>
     </div>
     <div id="message" class="message">Caricamento della galleria…</div>
@@ -179,7 +179,7 @@
     }
 
     function normalizeHeader(value) {
-      return String(value || '').trim().toUpperCase();
+      return String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toUpperCase();
     }
 
     // Parser CSV compatibile con virgole, virgolette e righe interne alle celle.
@@ -230,7 +230,7 @@
 
       const headers = rows.shift().map(normalizeHeader);
 
-      const required = ['NOME', 'Cognome', 'attività', 'Università', 'Url immagine'];
+      const required = ['NOME', 'COGNOME', 'ATTIVITA', 'UNIVERSITA', 'URL IMMAGINE'];
       const missing = required.filter(name => !headers.includes(name));
       if (missing.length) {
         throw new Error(`Colonne mancanti nel foglio: ${missing.join(', ')}.`);
@@ -264,7 +264,7 @@
       gallery.replaceChildren(...items.map(createCard));
       searchStatus.textContent = isFiltered
         ? `${items.length} ${items.length === 1 ? 'risultato trovato' : 'risultati trovati'}` : '';
-      if (isFiltered && !items.length) showMessage('Nessuno strumento corrisponde alla ricerca.');
+      if (isFiltered && !items.length) showMessage('Nessuno studente corrisponde alla ricerca.');
       else if (items.length) hideMessage();
       requestAnimationFrame(reportHeight);
     }
@@ -273,7 +273,7 @@
       const query = searchableText(searchInput.value.trim());
       if (!query) return renderItems(allItems);
       renderItems(allItems.filter(item =>
-        searchableText(`${item.NOME} ${item.DESCRIZIONE}`).includes(query)
+        searchableText(`${item.NOME} ${item.COGNOME} ${item.ATTIVITA} ${item.UNIVERSITA}`).includes(query)
       ), true);
     }
 
@@ -281,17 +281,19 @@
       const article = document.createElement('article');
       article.className = 'card';
 
-      const link = document.createElement('a');
+      const destination = safeHttpUrl(item.LINK);
+      const link = document.createElement(destination ? 'a' : 'div');
       link.className = 'card-link';
-      link.href = safeHttpUrl(item.LINK) || '#';
-      link.target = LINK_TARGET;
-      if (LINK_TARGET === '_blank') link.rel = 'noopener noreferrer';
-      link.setAttribute('aria-label', `${item.NOME}: ${item.DESCRIZIONE}`);
+      if (destination) {
+        link.href = destination;
+        link.target = LINK_TARGET;
+        if (LINK_TARGET === '_blank') link.rel = 'noopener noreferrer';
+      }
 
       const iconBox = document.createElement('div');
       iconBox.className = 'icon-box';
 
-      const iconUrl = safeHttpUrl(item['URL ICONA']);
+      const iconUrl = safeHttpUrl(item['URL IMMAGINE']);
       if (iconUrl) {
         const img = document.createElement('img');
         img.className = 'card-icon';
@@ -306,11 +308,11 @@
 
       const title = document.createElement('h2');
       title.className = 'card-title';
-      title.textContent = item.NOME;
+      title.textContent = [item.NOME, item.COGNOME].filter(Boolean).join(' ');
 
       const description = document.createElement('p');
       description.className = 'card-description';
-      description.textContent = item.DESCRIZIONE;
+      description.textContent = [item.ATTIVITA, item.UNIVERSITA].filter(Boolean).join(' — ');
 
       link.append(iconBox, title, description);
       article.appendChild(link);
@@ -322,7 +324,9 @@
         const response = await fetch(CSV_URL, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Errore HTTP ${response.status}.`);
 
-        const items = itemsFromCsv(await response.text());
+        const csvText = await response.text();
+        if (/^\s*</.test(csvText)) throw new Error('Il collegamento restituisce una pagina HTML invece del CSV.');
+        const items = itemsFromCsv(csvText);
         allItems = items;
         renderItems(items);
         searchInput.disabled = false;
@@ -330,7 +334,7 @@
         if (!items.length) showMessage('Il foglio non contiene ancora elementi da mostrare.');
       } catch (error) {
         console.error(error);
-        showMessage('Impossibile caricare i dati. Controlla che il foglio sia pubblicato sul web, il nome della scheda sia corretto e le quattro intestazioni coincidano.');
+        showMessage('Impossibile caricare i dati. ' + error.message + ' Verifica che il foglio sia pubblicato sul web come CSV.');
       }
     }
 
